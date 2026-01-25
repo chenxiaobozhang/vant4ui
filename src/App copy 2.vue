@@ -1,26 +1,38 @@
 <script setup>
 import { ref, toRaw, reactive, onMounted, onUnmounted, watch, computed, h } from 'vue';
 import { showDialog, Field } from 'vant';
-import { callLuaFun, lua2js, js2lua } from './public.js';
-// 1. 引入 Logs 组件
-// 注意：路径需根据你的实际位置调整，@ 通常指向 src 目录
-import Logs from './components/Logs.vue';
-import Transfer from './components/Transfer.vue';
+import { callLuaFun } from './public.js';
 
 // --- 1. 基础配置与默认数据 ---
 const STORAGE_LIST_KEY = 'UI_CONFIG_LIST';
 const STORAGE_INDEX_KEY = 'UI_CONFIG_ACTIVE_INDEX';
 
-const defaultData = window.UI_DATA?.defaultData || {};
+const defaultData = window.UI_DATA?.defaultData || {
+  autoPromote: false,
+  autoHarvest: true,
+  autoDate: false,
+  autoAffairs: true,
+  itemCount: 5,
+  dungeonDifficulty: '2',
+  lmfb: [1, 2],
+  tasks: ['a'],
+  server: '',
+  jc_startTime: ['08', '00'],
+  jc_endTime: ['10', '00'],
+  jc_startTime1: ['08', '00'],
+  jc_endTime1: ['10', '00'],
+  remarks: "",
+  scriptContent: "aa",
+  countdownTime: 30,
+  viewScale: 1.0
+};
 
-const appTitle = window.UI_DATA?.appTitle || "蝴蝶";
+const appTitle = window.UI_DATA?.appTitle || "蝴蝶 2.44";
 
 
 
 // 辅助函数：深度克隆 [cite: 7, 13]
 const createNewData = () => JSON.parse(JSON.stringify(defaultData));
-// 存储远程传来的数据
-const remoteData = ref({});
 
 // --- 2. 多配置管理逻辑 ---
 const showActionSheet = ref(false);
@@ -57,10 +69,6 @@ const saveAllToLocal = () => {
 // --- 3. 方案操作函数 (修复 Promise Cancel 报错) ---
 const switchConfig = (index) => {
   activeConfigIndex.value = index;
-  // 切换配置时，如果有远程数据，也需要合并 [cite: user request]
-  if (Object.keys(remoteData.value).length > 0) {
-    Object.assign(configList[index].data, remoteData.value);
-  }
   saveAllToLocal();
   showActionSheet.value = false;
 };
@@ -89,9 +97,6 @@ const addNewConfig = () => {
         data: createNewData()
       });
       activeConfigIndex.value = configList.length - 1;
-      if (Object.keys(remoteData.value).length > 0) {
-        Object.assign(configList[activeConfigIndex.value].data, remoteData.value);
-      }
       saveAllToLocal();
     }
   }).catch(() => { }); // 捕获取消操作，防止控制台报错 [cite: 12, 13]
@@ -132,40 +137,6 @@ const deleteConfig = (index) => {
       saveAllToLocal();
     }
   }).catch(() => { }); // 捕获取消操作 [cite: 18]
-};
-
-const copyConfig = (index) => {
-  if (configList.length >= (window.UI_DATA?.configsLimit || 20)) {
-    return showDialog({ message: '方案数量已达上限' });
-  }
-
-  const sourceConfig = configList[index];
-  let newName = `${sourceConfig.name} 副本`;
-
-  showDialog({
-    title: '复制方案',
-    showCancelButton: true,
-    message: () => h('div', { style: 'padding: 20px;' }, [
-      h(Field, {
-        modelValue: newName,
-        'onUpdate:modelValue': (val) => (newName = val),
-        placeholder: '请输入新方案名称',
-        border: true,
-        autofocus: true
-      })
-    ]),
-  }).then((action) => {
-    if (action === 'confirm') {
-      configList.push({
-        name: newName.trim() || '未命名副本',
-        data: JSON.parse(JSON.stringify(sourceConfig.data))
-      });
-      // 自动切换到新复制的方案
-      activeConfigIndex.value = configList.length - 1;
-      saveAllToLocal();
-      showActionSheet.value = false; // 关闭弹窗
-    }
-  }).catch(() => { });
 };
 
 // --- 4. 选择器逻辑 ---
@@ -232,9 +203,6 @@ const filteredTabs = computed(() => {
   if (!keyword) return settingGroups;
 
   return settingGroups.map(tab => {
-    // 如果 Tab 是组件类型（如 Logs），直接返回，不需要过滤 Groups
-    if (tab.component) return { ...tab };
-
     if (!tab.groups) return null;
     // 过滤 Tab 下的 Groups
     const matchedGroups = tab.groups.map(group => {
@@ -297,100 +265,23 @@ let timer = null;
 const handleReload = () => {
   window.location.reload();
 };
-const handleSave = () => {
-  saveAllToLocal();
-  if (window.bridge) {
-    callLuaFun("luaSave", formData.value);
-  }
-  showDialog({ message: `配置 [${configList[activeConfigIndex.value].name}] 已保存` }).catch(() => { });
-};
-const stopCountdown = () => {
-  if (timer) clearInterval(timer);
-  showCountdownBtn.value = false;
-};
-const handleNext = () => {
+const handleSave = (isSilent = false) => {
   saveAllToLocal();
   console.log(toRaw(formData.value));
-  if (window.bridge) {
-    if (timer) clearInterval(timer);
-    callLuaFun("luaContinue", toRaw(formData.value));
-    window.bridge.confirm(); //关闭窗口
-  } else {
-    showDialog({ message: `倒计时结束` }).catch(() => { });
-  }
-};
-const handleExit = () => {
-  if (window.bridge) {
-    callLuaFun("luaExitUI");
-    window.bridge.confirm(); //关闭窗口
-  } else {
-    showDialog({ message: `退出` }).catch(() => { });
-  }
-
-};
-
-
-
-
-const showLogsPopup = ref(false);
-const currentLogsData = ref([]);
-
-const handleButtonClick = (item) => {
-  if (item.key === 'openLogs') {
-    // 模拟从 JSON 初始化数据
-    currentLogsData.value = [
-      { id: 1, timestamp: '2023-10-27 10:00:01', name: '2023年10月27日10时00分01秒', size: '12584' },
-      { id: 2, timestamp: '2023-10-27 11:20:15', name: '2023年10月27日11时20分15秒', size: '4521' },
-      { id: 3, timestamp: '2023-10-27 14:05:33', name: '2023年10月27日14时05分33秒', size: '89000' },
-      { id: 4, timestamp: '2023-10-28 09:12:00', name: '2023年10月28日09时12分00秒', size: '1200000' },
-      { id: 5, timestamp: '2023-10-28 10:30:45', name: '2023年10月28日10时30分45秒', size: '33210' }
-    ];
-    showLogsPopup.value = true;
-  } else if (item.key === 'a') {
-    console.log('a');
+  callLuaFun("luaFun", toRaw(formData.value));
+  if (!isSilent) {
+    showDialog({ message: `配置 [${configList[activeConfigIndex.value].name}] 已保存` }).catch(() => { });
   }
 };
 
-
-// 新增一个纯粹的解析函数（给模板用）
-const parseText = (text) => {
-  if (!text || typeof text !== 'string' || !text.includes('${')) return text;
-  // 优化正则：支持 ${a.b} 这种多级取值
-  return text.replace(/\$\{([\w\.]+)\}/g, (_, key) => {
-    const val = key.split('.').reduce((o, k) => (o || {})[k], constData.value);
-    return val !== undefined ? val : '';
-  });
-};
-const constData = ref({}); // 全局响应式数据
-const jsInitLuaData = (_data) => {
-  console.log(_data);
-  try {
-    const data = lua2js(_data) //typeof _data === 'string' ? JSON.parse(_data) : _data;
-    if (data && typeof data === 'object') {
-      Object.assign(formData.value, data.formData);
-      remoteData.value = data.formData; // 保存远程数据，以便切换方案时使用
-      // 收到数据，只管存，其他什么都不用做
-      if (data.constData) Object.assign(constData.value, data.constData);
-    }
-  } catch (e) {
-    console.error("jsInitLuaData parsing error:", e);
-  }
-}
 onMounted(() => {
-  console.log(1);
-  window.jsInitLuaData = jsInitLuaData;
-  if (window.bridge) {
-    callLuaFun("luaData2js", formData.value);
-  } else {
-    jsInitLuaData(js2lua({ formData: { a: "aa", b: "bb" }, constData: { a: "aa", b: "bb", loop: 2, account: 10 } })); // 测试用
-  }
   timer = setInterval(() => {
     if (countdown.value > 0) {
       countdown.value--;
     } else {
       clearInterval(timer);
       showCountdownBtn.value = false;
-      handleNext(); // 倒计时结束，静默保存 [cite: 46]
+      handleSave(true); // 倒计时结束，静默保存 [cite: 46]
     }
   }, 1000);
 
@@ -398,10 +289,11 @@ onMounted(() => {
   if (mask) setTimeout(() => {
     mask.style.opacity = '0';
     setTimeout(() => mask.remove(), 200);
+    window.dispatchEvent(new Event('resize'));
   }, 200);
 
   // 初始化缩放
-  updateViewport(formData.value.viewScale || 0.8);
+  updateViewport(formData.value.viewScale || 1.0);
 });
 
 // 监听缩放变化
@@ -447,8 +339,7 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
         <template #title><van-icon :name="tab.icon" /> {{ tab.title }}</template>
 
         <div class="scroll-content">
-          <Logs v-if="tab.component === 'Logs'" />
-          <van-collapse v-model="activeNames" v-else>
+          <van-collapse v-model="activeNames">
             <!-- 此时 group 是 tab.groups 中的项 -->
             <template v-for="group in tab.groups" :key="group.name">
               <van-collapse-item :title="group.title" :name="group.name">
@@ -467,15 +358,14 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
                     <template #right-icon>
                       <van-radio-group v-model="formData[item.key]" direction="horizontal">
                         <van-radio v-for="opt in item.options" :key="opt.value" :name="opt.value">{{ opt.text
-                          }} </van-radio>
+                        }}</van-radio>
                       </van-radio-group>
                     </template>
                   </van-cell>
                   <van-cell v-if="item.type === 'checkbox'" :title="item.label"
-                    :title-style="{ minWidth: item.label_width || '120px' }">
+                    :title-style="{ minWidth: item.label_minWidth || '120px' }">
                     <template #right-icon><van-checkbox-group v-model="formData[item.key]" direction="horizontal">
-                        <van-checkbox v-for="opt in item.options" :key="opt.value" :name="opt.value" shape="square"
-                          :style="item.checkbox_width ? { minWidth: item.checkbox_width } : null">
+                        <van-checkbox v-for="opt in item.options" :key="opt.value" :name="opt.value" shape="square">
                           {{ opt.text }}
                         </van-checkbox>
                       </van-checkbox-group>
@@ -488,13 +378,7 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
                     :model-value="`${formData[item.startKey].join(':')} - ${formData[item.endKey].join(':')}`" is-link
                     readonly @click="onOpenTimeRange(item)" />
                   <van-field v-if="item.type === 'input'" v-model="formData[item.key]" :label="item.label"
-                    :placeholder="item.placeholder">
-                    <template #button v-if="item.btnText">
-                      <van-button size="small" type="primary" @click="handleButtonClick(item)"
-                        style="min-width: 50px;">{{ item.btnText
-                        }}</van-button>
-                    </template>
-                  </van-field>
+                    :placeholder="item.placeholder" />
                   <van-field v-if="item.type === 'textarea'" v-model="formData[item.key]" :label="item.label"
                     type="textarea" :rows="item.rows" autosize show-word-limit maxlength="500"
                     :placeholder="item.placeholder" />
@@ -509,25 +393,9 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
                         class="line-number-field" :placeholder="item.placeholder" />
                     </div>
                   </div>
-                  <van-cell v-if="item.type === 'button'" :title="item.label">
-                    <template #right-icon>
-                      <van-button size="small" type="primary" @click="handleButtonClick(item)">{{ item.btnText
-                        }} </van-button>
-                    </template>
-                  </van-cell>
                   <div v-if="item.type === 'desc'" class="van-cell hint" style="white-space: pre-line;">{{ item.desc
-                  }}
+                    }}
                   </div>
-                  <van-cell v-if="item.type === 'cell'" style="white-space: pre-line;" :icon="item.icon"
-                    :title="parseText(item.title)" :value="item.value">
-                  </van-cell>
-                  <Transfer v-if="item.type === 'transfer'" v-model="formData[item.key]"
-                    :options="formData[item.options] || []" />
-                  <pre style="font-size: 10px; color: red;" v-if="item.type === 'transfer'">
-          Key: {{ item.key }}
-          Selected: {{ formData[item.key] }}
-          Options Count: {{ formData[item.options]?.length }}
-        </pre>
                 </div>
               </van-collapse-item>
             </template>
@@ -536,22 +404,19 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
       </van-tab>
     </van-tabs>
 
-    <van-popup v-model:show="showLogsPopup" position="bottom" closeable>
-      <Logs :log-data="currentLogsData" />
-    </van-popup>
-
 
 
     <div class="footer-bar bui-box-space">
-      <van-button type="danger" class="bui-span1" @click="handleExit">退出</van-button>
+      <van-button type="danger" class="bui-span1"
+        @click="showDialog({ message: '已退出' }).catch(() => { })">退出</van-button>
 
       <transition name="fade-scale">
-        <van-button v-if="showCountdownBtn" type="success" class="bui-span2" @click="stopCountdown">
+        <van-button v-if="showCountdownBtn" type="success" class="bui-span2" @click="showCountdownBtn = false">
           停止倒计时 ({{ countdown }}s)
         </van-button>
       </transition>
 
-      <van-button type="primary" class="bui-span1" @click="handleNext()">继续</van-button>
+      <van-button type="primary" class="bui-span1" @click="handleSave(false)">保存配置</van-button>
     </div>
     <van-action-sheet v-model:show="showActionSheet" title="方案管理">
       <div class="sheet-content">
@@ -562,7 +427,6 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
             <span>{{ conf.name }}</span>
           </div>
           <div class="actions">
-            <van-icon name="description" @click.stop="copyConfig(idx)" />
             <van-icon name="edit" @click.stop="renameConfig(idx)" />
             <van-icon name="delete-o" color="#ee0a24" @click.stop="deleteConfig(idx)" />
           </div>
@@ -766,11 +630,5 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
 
 :deep(.textarea-title) {
   color: var(--van-cell-text-color);
-}
-
-:deep(.van-field__label) {
-  /*右边有按钮时保持文字垂直居中*/
-  display: flex;
-  align-items: center;
 }
 </style>
