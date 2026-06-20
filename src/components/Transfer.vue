@@ -7,10 +7,10 @@
 
     <div class="chosen-container">
       <transition-group name="list">
-        <van-tag v-for="(item, index) in sortedChosenItems" :key="item.id" closeable size="large" type="primary"
-          class="order-tag" @close="handleRemove(item.id)">
+        <van-tag v-for="(item, index) in sortedChosenItems" :key="item.value" closeable size="large" type="primary"
+          class="order-tag" @close="handleRemove(item.value)">
           <span class="index-dot">{{ index + 1 }}</span>
-          {{ item.name }}
+          {{ item.text }}
         </van-tag>
       </transition-group>
       <div v-if="modelValue.length === 0" class="empty-text">请在下方选择选项</div>
@@ -22,9 +22,9 @@
 
     <van-checkbox-group :model-value="modelValue" @update:model-value="onCheckboxChange">
       <van-cell-group inset>
-        <van-cell v-for="item in options" :key="item.id" :title="item.name" clickable @click="toggle(item.id)">
+        <van-cell v-for="item in options" :key="item.value" :title="item.text" clickable @click="toggle(item.value)">
           <template #right-icon>
-            <van-checkbox :name="item.id" @click.stop />
+            <van-checkbox :name="item.value" @click.stop shape="square" />
           </template>
         </van-cell>
       </van-cell-group>
@@ -36,13 +36,13 @@
 import { computed } from 'vue';
 
 const props = defineProps({
-  // 所有的选项数据
+  // 所有的选项数据，每个选项的结构为 { value: any, text: string }
   options: {
     type: Array,
     required: true,
     default: () => []
   },
-  // 选中的 ID 数组（顺序相关）
+  // 选中的 value 数组（保存了排序顺序）
   modelValue: {
     type: Array,
     default: () => []
@@ -51,44 +51,42 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue']);
 
-// 根据 modelValue 的顺序，计算出完整的对象列表
+// 根据 modelValue 的顺序，计算出完整的已选项对象列表
 const sortedChosenItems = computed(() => {
   return props.modelValue
-    .map(id => props.options.find(opt => opt.id === id))
+    .map(val => props.options.find(opt => opt.value === val))
     .filter(item => !!item);
 });
 
-// 处理点击 Cell 时的逻辑
-const toggle = (id) => {
+// 处理点击备选项行时的逻辑
+const toggle = (val) => {
   const newValue = [...props.modelValue];
-  const index = newValue.indexOf(id);
+  const index = newValue.indexOf(val);
 
   if (index > -1) {
     newValue.splice(index, 1); // 如果已存在，移除
   } else {
-    newValue.push(id); // 如果不存在，推入末尾（实现排序记录）
+    newValue.push(val); // 如果不存在，推入末尾（实现排序记录）
   }
   emit('update:modelValue', newValue);
 };
 
 // 处理 CheckboxGroup 内部触发的变化
-const onCheckboxChange = (newIds) => {
-  // 如果是取消勾选，需要保持原有顺序中去掉那个 ID
-  // 如果是新增勾选，需要找到新增的 ID 并 push 到末尾
-  if (newIds.length < props.modelValue.length) {
-    const updatedValue = props.modelValue.filter(id => newIds.includes(id));
+const onCheckboxChange = (newVals) => {
+  if (newVals.length < props.modelValue.length) {
+    const updatedValue = props.modelValue.filter(val => newVals.includes(val));
     emit('update:modelValue', updatedValue);
   } else {
-    const addedId = newIds.find(id => !props.modelValue.includes(id));
-    if (addedId !== undefined) {
-      emit('update:modelValue', [...props.modelValue, addedId]);
+    const addedVal = newVals.find(val => !props.modelValue.includes(val));
+    if (addedVal !== undefined) {
+      emit('update:modelValue', [...props.modelValue, addedVal]);
     }
   }
 };
 
-// 移除特定项
-const handleRemove = (id) => {
-  const newValue = props.modelValue.filter(itemId => itemId !== id);
+// 移除特定已选项
+const handleRemove = (val) => {
+  const newValue = props.modelValue.filter(itemVal => itemVal !== val);
   emit('update:modelValue', newValue);
 };
 </script>

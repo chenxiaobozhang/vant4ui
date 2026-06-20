@@ -1,7 +1,7 @@
 <script setup>
 import { ref, toRaw, reactive, onMounted, onUnmounted, watch, computed, h } from 'vue';
-import { showDialog, Field } from 'vant';
-import { callLuaFun, lua2js, js2lua } from './public.js';
+import { showDialog, Field, showToast, showSuccessToast, showFailToast } from 'vant';
+import { callLuaFun, lua2js, js2lua, Webview } from './public.js';
 // 1. 引入 Logs 组件
 // 注意：路径需根据你的实际位置调整，@ 通常指向 src 目录
 import Logs from './components/Logs.vue';
@@ -52,6 +52,8 @@ const formData = computed(() => configList[activeConfigIndex.value]?.data || {})
 const saveAllToLocal = () => {
   localStorage.setItem(STORAGE_LIST_KEY, JSON.stringify(toRaw(configList)));
   localStorage.setItem(STORAGE_INDEX_KEY, activeConfigIndex.value);
+  // 同步保存多方案配置到 Native 端
+  Webview.callLua("saveAllConfigs", toRaw(configList), activeConfigIndex.value, []);
 };
 
 // --- 3. 方案操作函数 (修复 Promise Cancel 报错) ---
@@ -202,8 +204,10 @@ const currentTimeItem = ref({});
 
 const onOpenTimeRange = (item) => {
   currentTimeItem.value = item;
-  tempStartTime.value = [...formData.value[item.startKey]];
-  tempEndTime.value = [...formData.value[item.endKey]];
+  const startVal = formData.value[item.startKey];
+  const endVal = formData.value[item.endKey];
+  tempStartTime.value = Array.isArray(startVal) ? [...startVal] : (typeof startVal === 'string' && startVal ? startVal.split(':') : ['08', '00']);
+  tempEndTime.value = Array.isArray(endVal) ? [...endVal] : (typeof endVal === 'string' && endVal ? endVal.split(':') : ['10', '00']);
   showTimePicker.value = true;
 };
 
@@ -215,6 +219,35 @@ const onConfirmTimePicker = () => {
   formData.value[item.startKey] = [...tempStartTime.value];
   formData.value[item.endKey] = [...tempEndTime.value];
   showTimePicker.value = false;
+};
+
+// --- 5.1 Transfer 弹窗逻辑 ---
+const showTransferPopup = ref(false);
+const currentTransferItem = ref({});
+const tempTransferValue = ref([]);
+
+const onOpenTransfer = (item) => {
+  currentTransferItem.value = item;
+  tempTransferValue.value = [...(formData.value[item.key] || [])];
+  showTransferPopup.value = true;
+};
+
+const onConfirmTransfer = () => {
+  formData.value[currentTransferItem.value.key] = [...tempTransferValue.value];
+  showTransferPopup.value = false;
+};
+
+const getTransferText = (item) => {
+  const selectedVals = formData.value[item.key] || [];
+  if (selectedVals.length === 0) return '';
+  const options = Array.isArray(item.options) ? item.options : (formData.value[item.options] || []);
+  if (selectedVals.length > 3) {
+    return `已选择 ${selectedVals.length} 项`;
+  }
+  return selectedVals.map(val => {
+    const opt = options.find(o => o.value === val);
+    return opt ? opt.text : val;
+  }).join(', ');
 };
 
 // --- 6. UI 配置数据 ---
@@ -299,10 +332,7 @@ const handleReload = () => {
 };
 const handleSave = () => {
   saveAllToLocal();
-  if (window.bridge) {
-    callLuaFun("luaSave", formData.value);
-  }
-  showDialog({ message: `配置 [${configList[activeConfigIndex.value].name}] 已保存` }).catch(() => { });
+  Webview.callLua("saveSettings", formData.value);
 };
 const stopCountdown = () => {
   if (timer) clearInterval(timer);
@@ -311,22 +341,17 @@ const stopCountdown = () => {
 const handleNext = () => {
   saveAllToLocal();
   console.log(toRaw(formData.value));
-  if (window.bridge) {
-    if (timer) clearInterval(timer);
-    callLuaFun("luaContinue", toRaw(formData.value));
-    window.bridge.confirm(); //关闭窗口
-  } else {
-    showDialog({ message: `倒计时结束` }).catch(() => { });
+  if (timer) clearInterval(timer);
+  Webview.callLua("startTask", formData.value);
+  if (window.bridge && typeof window.bridge.confirm === "function") {
+    window.bridge.confirm(); // 关闭窗口
   }
 };
 const handleExit = () => {
-  if (window.bridge) {
-    callLuaFun("luaExitUI");
-    window.bridge.confirm(); //关闭窗口
-  } else {
-    showDialog({ message: `退出` }).catch(() => { });
+  Webview.callLua("exitUI");
+  if (window.bridge && typeof window.bridge.confirm === "function") {
+    window.bridge.confirm(); // 关闭窗口
   }
-
 };
 
 
@@ -362,27 +387,54 @@ const parseText = (text) => {
   });
 };
 const constData = ref({}); // 全局响应式数据
-const jsInitLuaData = (_data) => {
-  console.log(_data);
+const jsInitData = (payload) => {
+  console.log("[App] jsInitData payload:", payload);
   try {
-    const data = lua2js(_data) //typeof _data === 'string' ? JSON.parse(_data) : _data;
-    if (data && typeof data === 'object') {
-      Object.assign(formData.value, data.formData);
-      remoteData.value = data.formData; // 保存远程数据，以便切换方案时使用
-      // 收到数据，只管存，其他什么都不用做
-      if (data.constData) Object.assign(constData.value, data.constData);
+    if (payload && typeof payload === 'object') {
+      if (payload.configList && Array.isArray(payload.configList)) {
+        configList.length = 0;
+        payload.configList.forEach(item => configList.push(item));
+      }
+      if (payload.activeConfigIndex !== undefined) {
+        activeConfigIndex.value = payload.activeConfigIndex;
+      }
+      if (!payload.configList && payload.formData) {
+        Object.assign(formData.value, payload.formData);
+        remoteData.value = payload.formData;
+      } else if (payload.configList && payload.configList[payload.activeConfigIndex]) {
+        remoteData.value = payload.configList[payload.activeConfigIndex].data;
+      }
+      if (payload.constData) {
+        Object.assign(constData.value, payload.constData);
+      }
     }
   } catch (e) {
-    console.error("jsInitLuaData parsing error:", e);
+    console.error("jsInitData processing error:", e);
   }
-}
+};
 onMounted(() => {
   console.log(1);
-  window.jsInitLuaData = jsInitLuaData;
-  if (window.bridge) {
-    callLuaFun("luaData2js", formData.value);
+  Webview.register("jsInitData", jsInitData);
+  Webview.register("onSaveResult", (success, message) => {
+    if (success) {
+      showSuccessToast(message || '本地配置方案保存成功！');
+    } else {
+      showFailToast(message || '本地配置方案保存失败！');
+    }
+  });
+  Webview.register("showLogs", (logsTable) => {
+    currentLogsData.value = logsTable || [];
+  });
+
+  if (window.bridge || window.webView) {
+    Webview.callLua("initData", defaultData);
+    Webview.callLua("getLogs");
   } else {
-    jsInitLuaData(js2lua({ formData: { a: "aa", b: "bb" }, constData: { a: "aa", b: "bb", loop: 2, account: 10 } })); // 测试用
+    jsInitData({
+      configList: [{ name: '默认方案', data: { a: "aa", b: "bb" } }],
+      activeConfigIndex: 0,
+      constData: { a: "aa", b: "bb", loop: 2, account: 10 }
+    });
   }
   timer = setInterval(() => {
     if (countdown.value > 0) {
@@ -401,12 +453,43 @@ onMounted(() => {
   }, 200);
 
   // 初始化缩放
-  updateViewport(formData.value.viewScale || 0.8);
+  updateViewport(viewScale.value || 0.8);
 });
 
-// 监听缩放变化
-watch(() => formData.value.viewScale, (val) => {
-  updateViewport(val || 1.0);
+// --- 8. 视觉设置与主题状态管理 ---
+const theme = ref(localStorage.getItem("VISUAL_THEME") || "glass");
+const viewScale = ref(Number(localStorage.getItem("VISUAL_VIEW_SCALE")) || 0.8);
+const darkBgOpacity = ref(Number(localStorage.getItem("VISUAL_DARK_BG_OPACITY")) || 20);
+const lightBgOpacity = ref(Number(localStorage.getItem("VISUAL_LIGHT_BG_OPACITY")) || 100);
+
+const showThemePopup = ref(false);
+const showSearchInput = ref(false);
+
+const isGlass = computed(() => theme.value === "glass");
+
+const opacity = computed({
+  get: () => isGlass.value ? darkBgOpacity.value : lightBgOpacity.value,
+  set: (val) => {
+    if (isGlass.value) {
+      darkBgOpacity.value = val;
+      localStorage.setItem("VISUAL_DARK_BG_OPACITY", val);
+      if (formData.value) formData.value.darkBgOpacity = val;
+    } else {
+      lightBgOpacity.value = val;
+      localStorage.setItem("VISUAL_LIGHT_BG_OPACITY", val);
+      if (formData.value) formData.value.lightBgOpacity = val;
+    }
+  }
+});
+
+const scalePercent = computed({
+  get: () => Math.round(viewScale.value * 100),
+  set: (val) => {
+    const scale = Number((val / 100).toFixed(2));
+    viewScale.value = scale;
+    localStorage.setItem("VISUAL_VIEW_SCALE", scale);
+    if (formData.value) formData.value.viewScale = scale;
+  }
 });
 
 const updateViewport = (scale) => {
@@ -416,16 +499,94 @@ const updateViewport = (scale) => {
   }
 };
 
+watch(isGlass, (val) => {
+  if (val) {
+    document.documentElement.classList.add("theme-glass");
+    document.body.classList.add("theme-glass");
+  } else {
+    document.documentElement.classList.remove("theme-glass");
+    document.body.classList.remove("theme-glass");
+  }
+}, { immediate: true });
+
+watch([opacity, isGlass], ([val]) => {
+  const bgOpacity = val / 100;
+  document.documentElement.style.setProperty("--bg-opacity", bgOpacity);
+}, { immediate: true });
+
+watch(theme, (val) => {
+  localStorage.setItem("VISUAL_THEME", val);
+  if (formData.value) formData.value.theme = val;
+}, { immediate: true });
+
+watch(viewScale, (val) => {
+  updateViewport(val || 0.8);
+}, { immediate: true });
+
+// 监听 formData 变化，同步主题配置
+watch(formData, (val) => {
+  if (val && typeof val === 'object') {
+    if (val.theme !== undefined) {
+      theme.value = val.theme;
+      localStorage.setItem("VISUAL_THEME", val.theme);
+    }
+    if (val.viewScale !== undefined) {
+      viewScale.value = val.viewScale;
+      localStorage.setItem("VISUAL_VIEW_SCALE", val.viewScale);
+    }
+    if (val.darkBgOpacity !== undefined) {
+      darkBgOpacity.value = val.darkBgOpacity;
+      localStorage.setItem("VISUAL_DARK_BG_OPACITY", val.darkBgOpacity);
+    }
+    if (val.lightBgOpacity !== undefined) {
+      lightBgOpacity.value = val.lightBgOpacity;
+      localStorage.setItem("VISUAL_LIGHT_BG_OPACITY", val.lightBgOpacity);
+    }
+    // 反向同步
+    val.theme = theme.value;
+    val.viewScale = viewScale.value;
+    val.darkBgOpacity = darkBgOpacity.value;
+    val.lightBgOpacity = lightBgOpacity.value;
+  }
+}, { immediate: true, deep: true });
+
 onUnmounted(() => { if (timer) clearInterval(timer); });
 </script>
 
 <template>
-  <div class="app-container">
+  <div class="app-container" :class="{ 'theme-glass': isGlass }">
     <header class="fixed-header">
-      <van-nav-bar :title="appTitle" fixed placeholder z-index="999">
-
-        <template #left><van-icon name="success" @click="handleSave(false)" size="18" /></template>
-        <template #right><van-icon name="replay" @click="handleReload" size="18" /></template>
+      <van-nav-bar fixed placeholder z-index="999" :class="{ 'navbar-searching': showSearchInput }">
+        <template #left>
+          <van-icon name="success" @click="handleSave(false)" size="22" />
+        </template>
+        <template #title>
+          <transition name="search-slide" mode="out-in">
+            <div v-if="showSearchInput" class="nav-search-wrapper">
+              <van-search v-model="searchText" placeholder="输入关键字搜索..." />
+            </div>
+            <span v-else class="nav-title-text">{{ appTitle }}</span>
+          </transition>
+        </template>
+        <template #right>
+          <div style="display: flex; gap: 16px; align-items: center;">
+            <van-icon
+              :name="showSearchInput ? 'cross' : 'search'"
+              @click="showSearchInput = !showSearchInput"
+              size="22"
+            />
+            <van-icon
+              name="brush-o"
+              @click="showThemePopup = true"
+              size="22"
+            />
+            <van-icon
+              name="replay"
+              @click="handleReload"
+              size="22"
+            />
+          </div>
+        </template>
       </van-nav-bar>
     </header>
 
@@ -437,17 +598,13 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
       </template>
     </van-cell>
 
-    <van-sticky :offset-top="46">
-      <van-search v-model="searchText" placeholder="输入想要搜索的功能..." />
-    </van-sticky>
-
-    <van-tabs v-model:active="activeTab" sticky offset-top="100px" animated swipeable color="#1989fa">
+    <van-tabs v-model:active="activeTab" sticky offset-top="46px" animated swipeable color="#1989fa">
       <van-tab v-for="(tab, idx) in filteredTabs" :key="tab.title"
         :name="settingGroups.findIndex(t => t.title === tab.title)">
         <template #title><van-icon :name="tab.icon" /> {{ tab.title }}</template>
 
         <div class="scroll-content">
-          <Logs v-if="tab.component === 'Logs'" />
+          <Logs v-if="tab.component === 'Logs'" :log-data="currentLogsData" />
           <van-collapse v-model="activeNames" v-else>
             <!-- 此时 group 是 tab.groups 中的项 -->
             <template v-for="group in tab.groups" :key="group.name">
@@ -485,7 +642,7 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
                     is-link readonly @click="onOpenPicker(item)" />
 
                   <van-field v-if="item.type === 'timeRange'" :label="item.label"
-                    :model-value="`${formData[item.startKey].join(':')} - ${formData[item.endKey].join(':')}`" is-link
+                    :model-value="formData[item.startKey] && formData[item.endKey] ? `${Array.isArray(formData[item.startKey]) ? formData[item.startKey].join(':') : formData[item.startKey]} - ${Array.isArray(formData[item.endKey]) ? formData[item.endKey].join(':') : formData[item.endKey]}` : ''" is-link
                     readonly @click="onOpenTimeRange(item)" />
                   <van-field v-if="item.type === 'input'" v-model="formData[item.key]" :label="item.label"
                     :placeholder="item.placeholder">
@@ -521,13 +678,10 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
                   <van-cell v-if="item.type === 'cell'" style="white-space: pre-line;" :icon="item.icon"
                     :title="parseText(item.title)" :value="item.value">
                   </van-cell>
-                  <Transfer v-if="item.type === 'transfer'" v-model="formData[item.key]"
-                    :options="formData[item.options] || []" />
-                  <pre style="font-size: 10px; color: red;" v-if="item.type === 'transfer'">
-          Key: {{ item.key }}
-          Selected: {{ formData[item.key] }}
-          Options Count: {{ formData[item.options]?.length }}
-        </pre>
+                  <van-field v-if="item.type === 'transfer'" :label="item.label"
+                    :model-value="getTransferText(item) || '请选择'" is-link readonly
+                    @click="onOpenTransfer(item)" />
+
                 </div>
               </van-collapse-item>
             </template>
@@ -585,6 +739,59 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
             :min-minute="currentTimeItem.minMinute" :max-minute="currentTimeItem.maxMinute" />
         </template>
       </van-picker-group>
+    </van-popup>
+
+    <!-- Transfer 穿梭框弹窗 -->
+    <van-popup v-model:show="showTransferPopup" position="bottom" round>
+      <div class="popup-content" style="max-height: 70vh; display: flex; flex-direction: column;">
+        <van-nav-bar :title="currentTransferItem.label || '选择'" left-text="取消" right-text="确定"
+          @click-left="showTransferPopup = false" @click-right="onConfirmTransfer" />
+        <div style="flex: 1; overflow-y: auto;">
+          <Transfer v-model="tempTransferValue"
+            :options="Array.isArray(currentTransferItem.options) ? currentTransferItem.options : (formData[currentTransferItem.options] || [])" />
+        </div>
+      </div>
+    </van-popup>
+
+    <!-- 视觉设置面板 -->
+    <van-popup
+      v-model:show="showThemePopup"
+      position="bottom"
+      round
+      safe-area-inset-bottom
+      teleport="body"
+    >
+      <div class="visual-settings-panel">
+        <div class="panel-header">视觉设置</div>
+        
+        <div class="setting-item">
+          <div class="setting-label">皮肤</div>
+          <van-radio-group v-model="theme" direction="horizontal">
+            <van-radio name="light">经典</van-radio>
+            <van-radio name="glass">毛玻璃</van-radio>
+          </van-radio-group>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-label">
+            <span>不透明度</span>
+            <span class="setting-value">{{ opacity }}%</span>
+          </div>
+          <div class="slider-wrapper">
+            <van-slider v-model="opacity" :min="0" :max="100" />
+          </div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-label">
+            <span>界面缩放</span>
+            <span class="setting-value">{{ scalePercent }}%</span>
+          </div>
+          <div class="slider-wrapper">
+            <van-slider v-model="scalePercent" :min="50" :max="150" />
+          </div>
+        </div>
+      </div>
     </van-popup>
   </div>
 </template>
@@ -772,5 +979,124 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
   /*右边有按钮时保持文字垂直居中*/
   display: flex;
   align-items: center;
+}
+
+/* 视觉设置面板样式 */
+.visual-settings-panel {
+  padding: 20px 16px;
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+}
+.theme-glass .visual-settings-panel {
+  background: rgba(15, 23, 42, 0.95) !important;
+  color: #f8fafc !important;
+}
+.visual-settings-panel .panel-header {
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 20px;
+  color: #323233;
+}
+.theme-glass .visual-settings-panel .panel-header {
+  color: #f8fafc !important;
+}
+.visual-settings-panel .setting-item {
+  margin-bottom: 24px;
+}
+.visual-settings-panel .setting-label {
+  font-size: 14px;
+  color: #646566;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+}
+.theme-glass .visual-settings-panel .setting-label {
+  color: #94a3b8 !important;
+}
+.visual-settings-panel .setting-value {
+  font-weight: 700;
+  color: #1989fa;
+}
+.theme-glass .visual-settings-panel .setting-value {
+  color: #818cf8 !important;
+}
+.visual-settings-panel .slider-wrapper {
+  padding: 6px 4px;
+}
+
+/* 导航栏搜索过渡动画 */
+.search-slide-enter-active,
+.search-slide-leave-active {
+  transition: all .12s cubic-bezier(.16, 1, .3, 1);
+}
+.search-slide-enter-from,
+.search-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-5px);
+}
+
+/* 导航栏搜索区域定制 */
+.nav-search-wrapper {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nav-search-wrapper :deep(.van-search) {
+  padding: 0;
+  background: transparent;
+  width: 100%;
+}
+.nav-search-wrapper :deep(.van-search__content) {
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 6px;
+}
+.theme-glass .nav-search-wrapper :deep(.van-search__content) {
+  background: rgba(15, 23, 42, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+.nav-search-wrapper :deep(.van-field__control) {
+  -webkit-text-fill-color: var(--van-field-input-text-color, #323233) !important;
+  color: var(--van-field-input-text-color, #323233) !important;
+}
+.theme-glass .nav-search-wrapper :deep(.van-field__control) {
+  -webkit-text-fill-color: #f8fafc !important;
+  color: #f8fafc !important;
+}
+.nav-title-text {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+.theme-glass .nav-title-text {
+  background: linear-gradient(90deg, #818cf8, #c084fc) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+:deep(.van-nav-bar__title) {
+  max-width: 65% !important;
+  width: 65%;
+  transition: all 0.15s ease;
+}
+.navbar-searching :deep(.van-nav-bar__title) {
+  position: absolute !important;
+  left: 48px !important;
+  right: 120px !important;
+  margin: 0 !important;
+  max-width: none !important;
+  width: auto !important;
+}
+.nav-search-wrapper :deep(.van-field__control::placeholder) {
+  color: rgba(100, 101, 102, 0.6) !important;
+  -webkit-text-fill-color: rgba(100, 101, 102, 0.6) !important;
+}
+.theme-glass .nav-search-wrapper :deep(.van-field__control::placeholder) {
+  color: rgba(255, 255, 255, 0.45) !important;
+  -webkit-text-fill-color: rgba(255, 255, 255, 0.45) !important;
+}
+.theme-glass .nav-search-wrapper :deep(.van-field__left-icon) .van-icon {
+  color: rgba(255, 255, 255, 0.6) !important;
 }
 </style>

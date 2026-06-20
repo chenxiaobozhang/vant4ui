@@ -1,0 +1,1671 @@
+﻿diff --git a/index.html b/index.html
+index a16269a..bbb70b8 100644
+--- a/index.html
++++ b/index.html
+@@ -28,6 +28,7 @@
+         justify-content: center;
+         align-items: center;
+         z-index: 9999;
++        opacity: 70%;
+       "
+     >
+       <div
+diff --git a/public/data.js b/public/data.js
+index 049ec22..ad833e0 100644
+--- a/public/data.js
++++ b/public/data.js
+@@ -27,7 +27,13 @@ window.UI_DATA = {
+     jc_endTime1: ['10', '00'],
+     remarks: "",
+     scriptContent: "aa",  
+-    countdownTime: 30  //鍊掕鏃舵椂闂?+    countdownTime: 30,  //鍊掕鏃舵椂闂?+    viewScale: 0.8,
++    transferSelected:[],
++    palace:true,
++    palace_select:24,
++    sjmk:true,
++    sjmk_select:10
+   },
+ 
+ 
+@@ -41,6 +47,8 @@ window.UI_DATA = {
+           title: '鍩虹鍔熻兘',
+           name: '1',
+           items: [
++            { label: '褰撳墠杩涘害', key: 'progress', type: 'cell', title: '褰撳墠杩涘害:绗?{loop}寰幆绗?{account}涓处鍙?, icon: 'location-o' ,value: '123',ref:true},
++            { label: '娴嬭瘯鏁版嵁', key: 'a', type: 'input', placeholder: '璇疯緭鍏ユ祴璇曟暟鎹?, btnText: '纭' },
+             { label: '鑷姩鍗囧爞', key: 'autoPromote', type: 'switch' },
+             { label: '鑷姩鏀惰彍', key: 'autoHarvest', type: 'switch' },
+             {
+@@ -60,6 +68,17 @@ window.UI_DATA = {
+               maxHour: 20,
+               minMinute: 30,
+               maxMinute: 40
++            },
++            {
++              type: 'transfer',
++              key:'transfer1',
++              options:[
++                { id: 101, name: '鑻规灉 (Apple)' },
++                { id: 102, name: '棣欒晧 (Banana)' },
++                { id: 103, name: '姗欏瓙 (Orange)' },
++                { id: 104, name: '钁¤悇 (Grape)' },
++                { id: 105, name: '瑗跨摐 (Watermelon)' }
++              ]
+             }
+           ]
+         },
+@@ -84,7 +103,164 @@ window.UI_DATA = {
+             { label: '涓€閿鐞?', key: 'autoAffairs2', type: 'switch' },
+             { label: '鎻愮ず2', desc: '璇峰憡璇夋垜鎮ㄧ殑鍏蜂綋鎰忓浘锛屾垜灏嗕负鎮ㄦ彁渚涙渶鍑嗙‘鐨勫府鍔┿€?, type: 'desc' }
+           ]
+-        }]
++        },
++        {
++          title:"鐨囧鑶滄嫓",
++          name:'8',
++          items:[
++            { label: '鑷姩鑶滄嫓', key: 'palace', type: 'switch' },
++            {
++              label:"閫夋嫨瀹",key:"palace_select",type:'picker',options:[
++                  {text: "1.姝︽灄鐩熶富",value: 1 }
++                  ,{text: "2.姹変笘瀹?,value: 2 }
++                  ,{text: "3.闅嬪紑鐨?,value: 3 }
++                  ,{text: "4.璐炶",value: 4 }
++                  ,{text: "5.姝︽泴",value: 5 }
++                  ,{text: "6.寤洪殕",value: 6 }
++                  ,{text: "7.姘镐箰",value: 7 }
++                  ,{text: "8.闆嶆",value: 8 }
++                  ,{text: "9.鑷冲厓",value: 9 }
++                  ,{text: "10.閵娈?,value: 10 }
++                  ,{text: "11.澶拰娈?,value: 11 }
++                  ,{text: "12.浠佸笣娈?,value: 12 }
++                  ,{text: "13.涔夊笣娈?,value: 13 }
++                  ,{text: "14.绀煎笣娈?,value: 14 }
++                  ,{text: "15.鏅哄笣娈?,value: 15 }
++                  ,{text: "16.蹇犲笣娈?,value: 16 }
++                  ,{text: "17.瀛濆笣娈?,value: 17 }  //绗?灞?+                  ,{text: "18.鏀垮笣娈?,value: 18 }  //绗?灞?+                  ,{text: "19.鏂囧笣娈?,value: 19 }
++                  ,{text: "20.榄呭笣娈?,value: 20 }
++                  ,{text: "21.姝﹀笣娈?,value: 21 }
++                  ,{text: "22.鏂囧鐜?,value: 22 }
++                  ,{text: "23.鎽勬斂鐜?,value: 23 }
++                  ,{text: "24.姝︽垚鐜?,value: 24 }
++                  ,{text: "25.闀囧崡鐜?,value: 25 }
++                  ,{text: "26.瀹ｇ儓鐜?,value: 26 }
++                  ,{text: "27.骞宠タ鐜?,value: 27 }
++                  ,{text: "28.閫嶉仴鐜?,value: 28 }
++                  ,{text: "29.鍏搐鐜?,value: 29 }
++                  ,{text: "30.闈栧畨鐜?,value: 30 }
++                  ,{text: "31.鏅烘亽鐜?,value: 31 }
++
++              ]
++            }
++          ]
++        },
++        {
++          title:"鍗囩骇闂ㄥ",
++          name:'9',
++          items:[
++            { label: '鑷姩鍗囩骇', key: 'sjmk', type: 'switch' },
++            {
++              label:"閫夋嫨闂ㄥ",key:"sjmk_select",type:'picker',options:[
++    {text: "B.鐧借幉鏁欓", value: 1},
++    {text: "B.鐧借捣", value: 2},
++    {text: "B.鍖呴緳鏄?, value: 3},
++    {text: "B.鍖呮湁涓?, value: 4},
++    {text: "B.鍖呮嫰", value: 5},
++    {text: "B.鍏樋鍝ヂ疯儰瑁?, value: 6},
++    {text: "C.鏇归洩鑺?, value: 7},
++    {text: "C.闄堣繎鍗?, value: 8},
++    {text: "C.绋嬪挰閲?, value: 9},
++    {text: "D.澶у笀鐖堕暱鐪?, value: 10},
++    {text: "D.澶у笀鍏勯樋浜?, value: 11},
++    {text: "D.澶ч樋鍝ヂ疯儰瑁?, value: 12},
++    {text: "D.涓滄柟鏈?, value: 13},
++    {text: "D.鏉滅敨", value: 14},
++    {text: "E.浜岄樋鍝ヂ疯儰鍒?, value: 15},
++    {text: "F.鑼冮泿", value: 16},
++    {text: "F.鑼冭牎", value: 17},
++    {text: "F.妯婃ⅷ鑺?, value: 18},
++    {text: "F.鑼冩枃绋?, value: 19},
++    {text: "G.鍣跺皵涓?, value: 20},
++    {text: "G.骞插皢", value: 21},
++    {text: "G.楂樻笎绂?, value: 22},
++    {text: "G.楂橀暱鎭?, value: 23},
++    {text: "G.鍏瓩绛?, value: 24},
++    {text: "G.鍏瓩鑳?, value: 25},
++    {text: "G.绠′徊", value: 26},
++    {text: "H.闊╀俊", value: 27},
++    {text: "H.鑺辨湪鍏?, value: 28},
++    {text: "H.娲壙鐣?, value: 29},
++    {text: "H.鑳￠洩宀?, value: 30},
++    {text: "H.鍗庡畨", value: 31},
++    {text: "H.闇嶅幓鐥?, value: 32},
++    {text: "J.绾榾", value: 33},
++    {text: "J.鑽嗚讲", value: 34},
++    {text: "J.涔濋樋鍝ヂ疯儰绯?, value: 35},
++    {text: "L.闆疯惫", value: 36},
++    {text: "L.鑰佸瓙", value: 37},
++    {text: "L.寤夐", value: 38},
++    {text: "L.姊佺孩鐜?, value: 39},
++    {text: "L.鏉庣櫧", value: 40},
++    {text: "L.鏉庡箍", value: 41},
++    {text: "L.鏉庤幉鑻?, value: 42},
++    {text: "L.鏉庡崼", value: 43},
++    {text: "L.鏋楀啿", value: 44},
++    {text: "L.鏋楀垯寰?, value: 45},
++    {text: "L.鏌冲鐑?, value: 46},
++    {text: "L.鍒橀偊", value: 47},
++    {text: "L.鍒樺", value: 48},
++    {text: "L.鍗繆涔?, value: 49},
++    {text: "L.闄嗘箻婀?, value: 50},
++    {text: "L.缃楁垚", value: 51},
++    {text: "M.澧ㄥ瓙", value: 52},
++    {text: "M.绌嗘鑻?, value: 53},
++    {text: "N.绾冲叞鏄庣彔", value: 54},
++    {text: "N.骞寸竟灏?, value: 55},
++    {text: "O.娆ч槼淇?, value: 56},
++    {text: "P.鑳栧笀鐖跺ぇ澶?, value: 57},
++    {text: "Q.绉︽¨", value: 58},
++    {text: "Q.绉﹁壇鐜?, value: 59},
++    {text: "Q.绉︾惣", value: 60},
++    {text: "Q.绉﹀皬鑾?, value: 61},
++    {text: "S.涓夐樋鍝ヂ疯儰绁?, value: 62},
++    {text: "S.鍟嗛瀰", value: 63},
++    {text: "S.鍦Ｂ锋潨搴?, value: 64},
++    {text: "S.鍦Ｂ峰瓟瀛?, value: 65},
++    {text: "S.鍦Ｂ锋潕鏃剁弽", value: 66},
++    {text: "S.鍦Ｂ烽檰缇?, value: 67},
++    {text: "S.鍦Ｂ峰紶浠叉櫙", value: 68},
++    {text: "S.鍦Ｂ峰惔閬撳瓙", value: 69},
++    {text: "S.鍙搁┈杩?, value: 70},
++    {text: "S.鍙搁┈鎳?, value: 71},
++    {text: "S.瀹嬫睙", value: 72},
++    {text: "S.绱㈠凹", value: 73},
++    {text: "S.鑻忕Е", value: 74},
++    {text: "S.鑻忚郊", value: 75},
++    {text: "S.瀛欐", value: 76},
++    {text: "S.鍥涢樋鍝ヂ疯儰绂?, value: 77},
++    {text: "S.瀹堥櫟浜?, value: 78},
++    {text: "S.鍗侀樋鍝ヂ疯儰琚?, value: 79},
++    {text: "S.鍗佷笁闃垮摜路鑳ょゥ", value: 80},
++    {text: "S.鍗佸洓闃垮摜路鑳ょΦ", value: 81},
++    {text: "T.妗冭姳", value: 82},
++    {text: "T.閾佹湪鐪?, value: 83},
++    {text: "W.鍗潚", value: 84},
++    {text: "W.榄忓緛", value: 85},
++    {text: "W.榄忓繝璐?, value: 86},
++    {text: "W.鍚寸敤", value: 87},
++    {text: "W.鐜嬪畨鐭?, value: 88},
++    {text: "W.鐜嬬静涔?, value: 89},
++    {text: "X.椤圭窘", value: 90},
++    {text: "X.灏忚溁铚?, value: 91},
++    {text: "X.灏忓笀寮熷厜鏄?, value: 92},
++    {text: "X.钀у墤", value: 93},
++    {text: "Y.宀抽", value: 94},
++    {text: "Y.瀣存斂", value: 95},
++    {text: "Y.灏夎繜鎭?, value: 96},
++    {text: "Z.灞曟槶", value: 97},
++    {text: "Z.寮犺　", value: 98},
++    {text: "Z.寮犲环鐜?, value: 99},
++    {text: "Z.璧甸珮", value: 100},
++    {text: "Z.閮戞澘妗?, value: 101},
++    {text: "Z.鍛ㄥ煿鍏?, value: 102}
++]
++            }
++          ]
++        }
++      ]
+     },
+     {
+       title: '楂樼骇璁剧疆',
+@@ -109,7 +285,8 @@ window.UI_DATA = {
+             },
+             {
+               label: '寮€鑱旂洘鍓湰222',
+-              label_minWidth: "120px",
++              label_width: "120px",
++              checkbox_width: "60px",
+               key: 'lmfb',
+               type: 'checkbox',
+               options: [{ text: '涓€绾?, value: 1 }, { text: '浜岀骇', value: 2 }, { text: '涓夌骇', value: 3 },
+@@ -163,7 +340,10 @@ window.UI_DATA = {
+           name: '5',
+           items: [
+             { label: '浣跨敤閬撳叿鏁伴噺', key: 'itemCount', type: 'stepper', min: 1, max: 99 },
+-            { label: '鍊掕鏃舵椂闂?, key: 'countdownTime', type: 'stepper', min: 5, max: 300 ,width: '50px'}
++            { label: '鍊掕鏃舵椂闂?, key: 'countdownTime', type: 'stepper', min: 5, max: 300 ,width: '50px'},
++            { label: '鐣岄潰缂╂斁', key: 'viewScale', type: 'stepper', min: 0.5, max: 1.0, step: 0.1, width: '50px' },
++            { label: '鏃ュ織绠＄悊', key: 'openLogs', type: 'button', btnText: '鏌ョ湅鏃ュ織' },
++            { label: '鎻愮ず', desc: '*鐣岄潰缂╂斁鍙湪绉诲姩绔敓鏁堬紝PC绔棤鏁堛€?, type: 'desc' }
+           ]
+ 
+         }
+diff --git a/src/App copy 2.vue b/src/App copy 2.vue
+new file mode 100644
+index 0000000..caf9695
+--- /dev/null
++++ b/src/App copy 2.vue	
+@@ -0,0 +1,634 @@
++<script setup>
++import { ref, toRaw, reactive, onMounted, onUnmounted, watch, computed, h } from 'vue';
++import { showDialog, Field } from 'vant';
++import { callLuaFun } from './public.js';
++
++// --- 1. 鍩虹閰嶇疆涓庨粯璁ゆ暟鎹?---
++const STORAGE_LIST_KEY = 'UI_CONFIG_LIST';
++const STORAGE_INDEX_KEY = 'UI_CONFIG_ACTIVE_INDEX';
++
++const defaultData = window.UI_DATA?.defaultData || {
++  autoPromote: false,
++  autoHarvest: true,
++  autoDate: false,
++  autoAffairs: true,
++  itemCount: 5,
++  dungeonDifficulty: '2',
++  lmfb: [1, 2],
++  tasks: ['a'],
++  server: '',
++  jc_startTime: ['08', '00'],
++  jc_endTime: ['10', '00'],
++  jc_startTime1: ['08', '00'],
++  jc_endTime1: ['10', '00'],
++  remarks: "",
++  scriptContent: "aa",
++  countdownTime: 30,
++  viewScale: 1.0
++};
++
++const appTitle = window.UI_DATA?.appTitle || "铦磋澏 2.44";
++
++
++
++// 杈呭姪鍑芥暟锛氭繁搴﹀厠闅?[cite: 7, 13]
++const createNewData = () => JSON.parse(JSON.stringify(defaultData));
++
++// --- 2. 澶氶厤缃鐞嗛€昏緫 ---
++const showActionSheet = ref(false);
++
++const getInitialList = () => {
++  const local = localStorage.getItem(STORAGE_LIST_KEY);
++  if (local) {
++    try {
++      const list = JSON.parse(local);
++      // 纭繚鏂板鍔犵殑閰嶇疆瀛楁锛堝 countdownTime锛夎兘澶熷悎骞跺埌鏃ф暟鎹腑
++      const def = createNewData();
++      list.forEach(item => {
++        // 浣跨敤 Object.assign 鎴栬€呰В鏋勮祴鍊兼潵纭繚榛樿鍊煎瓨鍦?+        // 娉ㄦ剰锛氳繖閲岀畝鍗曞悎骞讹紝濡傛灉鐢ㄦ埛鍒犻櫎浜嗘煇浜涘瓧娈靛彲鑳借閲嶇疆锛屼絾瀵逛簬鏂板瀛楁鏄繀瑕佺殑
++        item.data = { ...def, ...item.data };
++      });
++      return list;
++    } catch (e) { console.error(e); }
++  }
++  return [{ name: '榛樿鏂规', data: createNewData() }];
++};
++
++const configList = reactive(getInitialList());
++const activeConfigIndex = ref(Number(localStorage.getItem(STORAGE_INDEX_KEY)) || 0);
++
++// formData 鍔ㄦ€佹寚鍚戝綋鍓嶉€変腑鐨勯厤缃?[cite: 8]
++const formData = computed(() => configList[activeConfigIndex.value]?.data || {});
++
++const saveAllToLocal = () => {
++  localStorage.setItem(STORAGE_LIST_KEY, JSON.stringify(toRaw(configList)));
++  localStorage.setItem(STORAGE_INDEX_KEY, activeConfigIndex.value);
++};
++
++// --- 3. 鏂规鎿嶄綔鍑芥暟 (淇 Promise Cancel 鎶ラ敊) ---
++const switchConfig = (index) => {
++  activeConfigIndex.value = index;
++  saveAllToLocal();
++  showActionSheet.value = false;
++};
++
++const addNewConfig = () => {
++  if (configList.length >= (window.UI_DATA?.configsLimit || 20)) {
++    return showDialog({ message: '鏂规鏁伴噺宸茶揪涓婇檺' });
++  }
++  let newName = `鏂规 ${configList.length + 1}`;
++  showDialog({
++    title: '鏂板缓鏂规',
++    showCancelButton: true,
++    message: () => h('div', { style: 'padding: 20px;' }, [
++      h(Field, {
++        modelValue: newName,
++        'onUpdate:modelValue': (val) => (newName = val),
++        placeholder: '璇疯緭鍏ユ柟妗堝悕绉?,
++        border: true,
++        autofocus: true
++      })
++    ]),
++  }).then((action) => {
++    if (action === 'confirm') {
++      configList.push({
++        name: newName.trim() || '鏈懡鍚嶆柟妗?,
++        data: createNewData()
++      });
++      activeConfigIndex.value = configList.length - 1;
++      saveAllToLocal();
++    }
++  }).catch(() => { }); // 鎹曡幏鍙栨秷鎿嶄綔锛岄槻姝㈡帶鍒跺彴鎶ラ敊 [cite: 12, 13]
++};
++
++const renameConfig = (index) => {
++  let currentName = configList[index].name;
++  showDialog({
++    title: '閲嶅懡鍚?,
++    showCancelButton: true,
++    message: () => h('div', { style: 'padding: 20px;' }, [
++      h(Field, {
++        modelValue: currentName,
++        'onUpdate:modelValue': (val) => (currentName = val),
++        placeholder: '璇疯緭鍏ユ柊鍚嶇О',
++        border: true,
++        autofocus: true
++      })
++    ]),
++  }).then((action) => {
++    if (action === 'confirm' && currentName.trim()) {
++      configList[index].name = currentName.trim();
++      saveAllToLocal();
++    }
++  }).catch(() => { }); // 鎹曡幏鍙栨秷鎿嶄綔 [cite: 15, 16]
++};
++
++const deleteConfig = (index) => {
++  if (configList.length <= 1) return showDialog({ message: '鑷冲皯淇濈暀涓€涓柟妗? });
++  showDialog({
++    title: '纭鍒犻櫎',
++    message: `纭畾瑕佸垹闄?[${configList[index].name}] 鍚楋紵`,
++    showCancelButton: true
++  }).then((action) => {
++    if (action === 'confirm') {
++      configList.splice(index, 1);
++      if (activeConfigIndex.value >= configList.length) activeConfigIndex.value = 0;
++      saveAllToLocal();
++    }
++  }).catch(() => { }); // 鎹曡幏鍙栨秷鎿嶄綔 [cite: 18]
++};
++
++// --- 4. 閫夋嫨鍣ㄩ€昏緫 ---
++const getPickerText = (item) => {
++  const val = formData.value[item.key];
++  const option = item.options?.find(opt => opt.value === val);
++  return option ? option.text : val;
++};
++
++const showPicker = ref(false);
++const currentPickerItem = ref({});
++
++const onOpenPicker = (item) => {
++  currentPickerItem.value = item;
++  showPicker.value = true;
++};
++
++const onConfirmPicker = ({ selectedOptions }) => {
++  formData.value[currentPickerItem.value.key] = selectedOptions[0].value;
++  showPicker.value = false;
++};
++
++// --- 5. 鏃堕棿閫夋嫨鍣ㄩ€昏緫 ---
++const timePicker_format = (type, option) => {
++  if (type === 'hour') option.text += '鏃?;
++  if (type === 'minute') option.text += '鍒?;
++  return option;
++};
++
++const tempStartTime = ref(['08', '00']);
++const tempEndTime = ref(['10', '00']);
++const showTimePicker = ref(false);
++const currentTimeItem = ref({});
++
++const onOpenTimeRange = (item) => {
++  currentTimeItem.value = item;
++  tempStartTime.value = [...formData.value[item.startKey]];
++  tempEndTime.value = [...formData.value[item.endKey]];
++  showTimePicker.value = true;
++};
++
++const onConfirmTimePicker = () => {
++  const item = currentTimeItem.value;
++  if (tempStartTime.value.join(':') >= tempEndTime.value.join(':')) {
++    return showDialog({ message: '缁撴潫鏃堕棿蹇呴』鏅氫簬寮€濮嬫椂闂? }).catch(() => { });
++  }
++  formData.value[item.startKey] = [...tempStartTime.value];
++  formData.value[item.endKey] = [...tempEndTime.value];
++  showTimePicker.value = false;
++};
++
++// --- 6. UI 閰嶇疆鏁版嵁 ---
++const activeTab = ref(window.UI_DATA?.activeTab || 0);
++// const tabsConfig 绉婚櫎锛岀洿鎺ヤ娇鐢?settingGroups 涓殑缁撴瀯
++
++const settingGroups = window.UI_DATA?.settingGroups || [];
++
++const activeNames = ref(['1', '3', '4', '5']);
++const searchText = ref('');
++
++// 璁＄畻灞炴€э細杩囨护鍚庣殑 Tabs 缁撴瀯
++const filteredTabs = computed(() => {
++  const keyword = searchText.value.trim().toLowerCase();
++  if (!keyword) return settingGroups;
++
++  return settingGroups.map(tab => {
++    if (!tab.groups) return null;
++    // 杩囨护 Tab 涓嬬殑 Groups
++    const matchedGroups = tab.groups.map(group => {
++      if (!group) return null;
++      const groupTitle = group.title ? String(group.title) : '';
++      const isGroupTitleMatch = groupTitle.toLowerCase().includes(keyword);
++
++      // 杩囨护 Group 涓嬬殑 Items
++      const items = group.items || [];
++      const matchedItems = items.filter(item => {
++        const itemLabel = item.label ? String(item.label) : '';
++        return itemLabel.toLowerCase().includes(keyword);
++      });
++
++      if (isGroupTitleMatch) return { ...group }; // Group 鏍囬鍖归厤锛屾樉绀烘暣涓?Group
++      if (matchedItems.length > 0) return { ...group, items: matchedItems }; // Items 鍖归厤锛屾樉绀哄尮閰嶇殑 Items
++      return null;
++    }).filter(Boolean);
++
++    // 濡傛灉 Tab 涓嬫湁鍖归厤鐨?Group锛屽垯杩斿洖璇?Tab
++    if (matchedGroups.length > 0) {
++      return { ...tab, groups: matchedGroups };
++    }
++    return null;
++  }).filter(Boolean);
++});
++
++// 鐩戝惉鎼滅储锛岃嚜鍔ㄨ烦杞埌绗竴涓尮閰嶉」
++watch(searchText, (val) => {
++  if (!val.trim() || filteredTabs.value.length === 0) return;
++
++  // 灞曞紑鎵€鏈夊尮閰嶇殑 Groups
++  const allGroupNames = filteredTabs.value.flatMap(tab => (tab.groups || []).map(g => g.name));
++  activeNames.value = [...new Set([...activeNames.value, ...allGroupNames])];
++
++  // 鍒囨崲鍒扮涓€涓湁缁撴灉鐨?Tab
++  // 鍘熷 settingGroups 瀵瑰簲鐨勭储寮?+  const firstMatchedTab = filteredTabs.value[0];
++  if (firstMatchedTab) {
++    const firstMatchedTabTitle = firstMatchedTab.title;
++    const originalIndex = settingGroups.findIndex(tab => tab.title === firstMatchedTabTitle);
++    if (originalIndex !== -1) activeTab.value = originalIndex;
++  }
++});
++
++
++// --- 7. 鍊掕鏃朵笌闈欓粯淇濆瓨閫昏緫 ---
++// 鍒濆鍖栧€掕鏃讹細浼樺厛浣跨敤 formData 涓殑閰嶇疆锛屽惁鍒欓粯璁?30
++const getInitialCountdown = () => {
++  // formData 鏄?computed锛屾鏃跺彲鑳借繕鏈噯澶囧ソ锛屾垨鑰呭凡缁忓噯澶囧ソ銆?+  // 浣嗗湪 setup 闃舵 configList 鍙婂叾 activeConfigIndex 宸茬粡鏈夊€笺€?+  // 鎴戜滑鐩存帴璇诲彇 configList 涓綋鍓嶆柟妗堢殑鏁版嵁銆?+  const currentData = configList[activeConfigIndex.value]?.data;
++  return (currentData && currentData.countdownTime) ? Number(currentData.countdownTime) : 30;
++};
++const countdown = ref(getInitialCountdown());
++const showCountdownBtn = ref(true);
++let timer = null;
++
++const handleReload = () => {
++  window.location.reload();
++};
++const handleSave = (isSilent = false) => {
++  saveAllToLocal();
++  console.log(toRaw(formData.value));
++  callLuaFun("luaFun", toRaw(formData.value));
++  if (!isSilent) {
++    showDialog({ message: `閰嶇疆 [${configList[activeConfigIndex.value].name}] 宸蹭繚瀛榒 }).catch(() => { });
++  }
++};
++
++onMounted(() => {
++  timer = setInterval(() => {
++    if (countdown.value > 0) {
++      countdown.value--;
++    } else {
++      clearInterval(timer);
++      showCountdownBtn.value = false;
++      handleSave(true); // 鍊掕鏃剁粨鏉燂紝闈欓粯淇濆瓨 [cite: 46]
++    }
++  }, 1000);
++
++  const mask = document.getElementById('loading-mask');
++  if (mask) setTimeout(() => {
++    mask.style.opacity = '0';
++    setTimeout(() => mask.remove(), 200);
++    window.dispatchEvent(new Event('resize'));
++  }, 200);
++
++  // 鍒濆鍖栫缉鏀?+  updateViewport(formData.value.viewScale || 1.0);
++});
++
++// 鐩戝惉缂╂斁鍙樺寲
++watch(() => formData.value.viewScale, (val) => {
++  updateViewport(val || 1.0);
++});
++
++const updateViewport = (scale) => {
++  const meta = document.querySelector('meta[name="viewport"]');
++  if (meta) {
++    meta.content = `width=device-width, initial-scale=${scale}, maximum-scale=${scale}, minimum-scale=${scale}, user-scalable=no`;
++  }
++};
++
++onUnmounted(() => { if (timer) clearInterval(timer); });
++</script>
++
++<template>
++  <div class="app-container">
++    <header class="fixed-header">
++      <van-nav-bar :title="appTitle" fixed placeholder z-index="999">
++
++        <template #left><van-icon name="success" @click="handleSave(false)" size="18" /></template>
++        <template #right><van-icon name="replay" @click="handleReload" size="18" /></template>
++      </van-nav-bar>
++    </header>
++
++    <van-cell center title="鏂规绠＄悊" class="config-bar">
++      <template #value>
++        <van-button size="small" type="primary" plain icon="apps-o" @click="showActionSheet = true">
++          {{ configList[activeConfigIndex].name }}
++        </van-button>
++      </template>
++    </van-cell>
++
++    <van-sticky :offset-top="46">
++      <van-search v-model="searchText" placeholder="杈撳叆鎯宠鎼滅储鐨勫姛鑳?.." />
++    </van-sticky>
++
++    <van-tabs v-model:active="activeTab" sticky offset-top="100px" animated swipeable color="#1989fa">
++      <van-tab v-for="(tab, idx) in filteredTabs" :key="tab.title"
++        :name="settingGroups.findIndex(t => t.title === tab.title)">
++        <template #title><van-icon :name="tab.icon" /> {{ tab.title }}</template>
++
++        <div class="scroll-content">
++          <van-collapse v-model="activeNames">
++            <!-- 姝ゆ椂 group 鏄?tab.groups 涓殑椤?-->
++            <template v-for="group in tab.groups" :key="group.name">
++              <van-collapse-item :title="group.title" :name="group.name">
++                <div v-for="(item, i) in group.items" :key="i">
++
++                  <van-cell v-if="item.type === 'switch'" :title="item.label">
++                    <template #right-icon><van-switch v-model="formData[item.key]" size="22px" /></template>
++                  </van-cell>
++
++                  <van-cell v-if="item.type === 'stepper'" :title="item.label">
++                    <template #value><van-stepper v-model="formData[item.key]" :min="item.min" :max="item.max"
++                        :step="item.step || 1" :input-width="item.width" /></template>
++                  </van-cell>
++
++                  <van-cell v-if="item.type === 'radio'" :title="item.label">
++                    <template #right-icon>
++                      <van-radio-group v-model="formData[item.key]" direction="horizontal">
++                        <van-radio v-for="opt in item.options" :key="opt.value" :name="opt.value">{{ opt.text
++                        }}</van-radio>
++                      </van-radio-group>
++                    </template>
++                  </van-cell>
++                  <van-cell v-if="item.type === 'checkbox'" :title="item.label"
++                    :title-style="{ minWidth: item.label_minWidth || '120px' }">
++                    <template #right-icon><van-checkbox-group v-model="formData[item.key]" direction="horizontal">
++                        <van-checkbox v-for="opt in item.options" :key="opt.value" :name="opt.value" shape="square">
++                          {{ opt.text }}
++                        </van-checkbox>
++                      </van-checkbox-group>
++                    </template>
++                  </van-cell>
++                  <van-field v-if="item.type === 'picker'" :model-value="getPickerText(item)" :label="item.label"
++                    is-link readonly @click="onOpenPicker(item)" />
++
++                  <van-field v-if="item.type === 'timeRange'" :label="item.label"
++                    :model-value="`${formData[item.startKey].join(':')} - ${formData[item.endKey].join(':')}`" is-link
++                    readonly @click="onOpenTimeRange(item)" />
++                  <van-field v-if="item.type === 'input'" v-model="formData[item.key]" :label="item.label"
++                    :placeholder="item.placeholder" />
++                  <van-field v-if="item.type === 'textarea'" v-model="formData[item.key]" :label="item.label"
++                    type="textarea" :rows="item.rows" autosize show-word-limit maxlength="500"
++                    :placeholder="item.placeholder" />
++
++                  <div v-if="item.type === 'textareaEx'" class="textarea-container">
++                    <div class="textarea-title">{{ item.label }}</div>
++                    <div class="custom-textarea-wrapper">
++                      <div class="line-numbers">
++                        <div v-for="n in (formData[item.key]?.split('\n').length || 1)" :key="n">{{ n }}</div>
++                      </div>
++                      <van-field v-model="formData[item.key]" type="textarea" :rows="item.rows" autosize
++                        class="line-number-field" :placeholder="item.placeholder" />
++                    </div>
++                  </div>
++                  <div v-if="item.type === 'desc'" class="van-cell hint" style="white-space: pre-line;">{{ item.desc
++                    }}
++                  </div>
++                </div>
++              </van-collapse-item>
++            </template>
++          </van-collapse>
++        </div>
++      </van-tab>
++    </van-tabs>
++
++
++
++    <div class="footer-bar bui-box-space">
++      <van-button type="danger" class="bui-span1"
++        @click="showDialog({ message: '宸查€€鍑? }).catch(() => { })">閫€鍑?/van-button>
++
++      <transition name="fade-scale">
++        <van-button v-if="showCountdownBtn" type="success" class="bui-span2" @click="showCountdownBtn = false">
++          鍋滄鍊掕鏃?({{ countdown }}s)
++        </van-button>
++      </transition>
++
++      <van-button type="primary" class="bui-span1" @click="handleSave(false)">淇濆瓨閰嶇疆</van-button>
++    </div>
++    <van-action-sheet v-model:show="showActionSheet" title="鏂规绠＄悊">
++      <div class="sheet-content">
++        <div v-for="(conf, idx) in configList" :key="idx" class="config-row"
++          :class="{ active: activeConfigIndex === idx }">
++          <div class="name-info" @click="switchConfig(idx)">
++            <van-icon :name="activeConfigIndex === idx ? 'success' : 'notes-o'" />
++            <span>{{ conf.name }}</span>
++          </div>
++          <div class="actions">
++            <van-icon name="edit" @click.stop="renameConfig(idx)" />
++            <van-icon name="delete-o" color="#ee0a24" @click.stop="deleteConfig(idx)" />
++          </div>
++        </div>
++        <van-button icon="plus" type="primary" block @click="addNewConfig" class="mt-20">鏂板缓鏂规</van-button>
++      </div>
++    </van-action-sheet>
++    <van-popup v-model:show="showPicker" position="bottom" round>
++      <van-picker :columns="currentPickerItem.options || []" @confirm="onConfirmPicker" @cancel="showPicker = false" />
++    </van-popup>
++    <van-popup v-model:show="showTimePicker" position="bottom" round>
++      <van-picker-group title="閫夋嫨鏃堕棿娈? :tabs="['寮€濮嬫椂闂?, '缁撴潫鏃堕棿']" next-step-text="涓嬩竴姝? @confirm="onConfirmTimePicker"
++        @cancel="showTimePicker = false">
++        <template v-if="currentTimeItem.startKey">
++          <van-time-picker v-model="tempStartTime" title="寮€濮嬫椂闂? :formatter="timePicker_format"
++            :min-hour="currentTimeItem.minHour" :max-hour="currentTimeItem.maxHour"
++            :min-minute="currentTimeItem.minMinute" :max-minute="currentTimeItem.maxMinute" />
++          <van-time-picker v-model="tempEndTime" title="缁撴潫鏃堕棿" :formatter="timePicker_format"
++            :min-hour="currentTimeItem.minHour" :max-hour="currentTimeItem.maxHour"
++            :min-minute="currentTimeItem.minMinute" :max-minute="currentTimeItem.maxMinute" />
++        </template>
++      </van-picker-group>
++    </van-popup>
++  </div>
++</template>
++
++<style scoped>
++.app-container {
++  background: #f7f8fa;
++  min-height: 100vh;
++}
++
++.fixed-header :deep(.van-nav-bar) {
++  background: #1989fa;
++}
++
++.fixed-header :deep(.van-nav-bar__title),
++.fixed-header :deep(.van-icon) {
++  color: #fff;
++}
++
++.config-bar {
++  margin: 4px 0;
++  background: #fff;
++}
++
++.scroll-content {
++  padding-bottom: 90px;
++}
++
++.footer-bar {
++  position: fixed;
++  bottom: 0;
++  width: 100%;
++  display: flex;
++  padding: 10px;
++  gap: 8px;
++  background: #fff;
++  box-sizing: border-box;
++  z-index: 100;
++  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
++}
++
++.bui-span1 {
++  flex: 1;
++}
++
++.bui-span2 {
++  flex: 2;
++}
++
++.config-row {
++  display: flex;
++  justify-content: space-between;
++  align-items: center;
++  padding: 14px;
++  margin-top: 10px;
++  background: #f7f8fa;
++  border-radius: 8px;
++}
++
++.config-row.active {
++  background: #eef5fe;
++  color: #1989fa;
++  border: 1px solid #1989fa;
++  box-sizing: border-box;
++}
++
++.name-info {
++  flex: 1;
++  display: flex;
++  align-items: center;
++  gap: 10px;
++  font-size: 15px;
++}
++
++.actions {
++  display: flex;
++  gap: 16px;
++  font-size: 18px;
++  color: #969799;
++}
++
++.textarea-container {
++  padding: 10px 16px;
++  background: #fff;
++}
++
++.custom-textarea-wrapper {
++  display: flex;
++  border: 1px solid #ebedf0;
++  border-radius: 4px;
++  overflow: hidden;
++}
++
++.line-numbers {
++  padding: 10px 0;
++  width: 32px;
++  background: #f7f8fa;
++  border-right: 1px solid #ebedf0;
++  text-align: center;
++  color: #969799;
++  line-height: 24px;
++  font-family: monospace;
++}
++
++:deep(.line-number-field .van-field__control) {
++  line-height: 24px;
++  font-family: monospace;
++}
++
++.mt-20 {
++  margin-top: 20px;
++}
++
++/* 杩涘叆鍜岀寮€鐨勮繃绋?*/
++.fade-scale-enter-active,
++.fade-scale-leave-active {
++  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
++}
++
++/* 绂诲紑鏃剁殑鐘舵€侊細閫忔槑搴﹀綊闆讹紝涓?flex 姣斾緥鍙樹负 0 */
++.fade-scale-leave-to {
++  opacity: 0;
++  flex: 0;
++  margin: 0;
++  padding: 0;
++  transform: scale(0.9);
++  /* 杞诲井缂╁皬鏁堟灉 */
++}
++
++/* 杩涘叆鍓嶇殑鍒濆鐘舵€?*/
++.fade-scale-enter-from {
++  opacity: 0;
++  flex: 0;
++  transform: scale(0.9);
++}
++
++.van-radio-group,
++.van-checkbox-group {
++  display: flex;
++  flex-wrap: wrap;
++  /* 寮€鍚嚜鍔ㄦ崲琛?*/
++  gap: 12px 0px;
++  margin-top: 0;
++  margin-bottom: 0;
++}
++
++:deep(.van-cell)::after {
++  position: absolute;
++  box-sizing: border-box;
++  content: " ";
++  pointer-events: none;
++  top: auto;
++  right: 16px;
++  bottom: 0;
++  left: 16px;
++  border-bottom: 1px solid #ebedf0;
++  transform: scaleY(0.5);
++  z-index: 1;
++  display: block;
++}
++
++.hint {
++  color: #666;
++  padding-left: 20px;
++  margin-top: -10px !important;
++  z-index: 2;
++  /* 鎻愰珮灞傜骇浠ラ伄鎸′笂涓€涓?cell 鐨?border (z-index: 1) */
++  position: relative;
++  background-color: #fff
++}
++
++:deep(.van-cell--borderless)::after {
++  display: none;
++}
++
++:deep(.van-action-sheet__content) {
++  padding: 0 16px 16px 16px;
++}
++
++:deep(.textarea-title) {
++  color: var(--van-cell-text-color);
++}
++</style>
+\ No newline at end of file
+diff --git a/src/App.vue b/src/App.vue
+index 248f341..0a97594 100644
+--- a/src/App.vue
++++ b/src/App.vue
+@@ -1,37 +1,26 @@
+ <script setup>
+ import { ref, toRaw, reactive, onMounted, onUnmounted, watch, computed, h } from 'vue';
+ import { showDialog, Field } from 'vant';
+-import { callLuaFun } from './public.js';
++import { callLuaFun, lua2js, js2lua } from './public.js';
++// 1. 寮曞叆 Logs 缁勪欢
++// 娉ㄦ剰锛氳矾寰勯渶鏍规嵁浣犵殑瀹為檯浣嶇疆璋冩暣锛孈 閫氬父鎸囧悜 src 鐩綍
++import Logs from './components/Logs.vue';
++import Transfer from './components/Transfer.vue';
+ 
+ // --- 1. 鍩虹閰嶇疆涓庨粯璁ゆ暟鎹?---
+ const STORAGE_LIST_KEY = 'UI_CONFIG_LIST';
+ const STORAGE_INDEX_KEY = 'UI_CONFIG_ACTIVE_INDEX';
+ 
+-const defaultData = window.UI_DATA?.defaultData || {
+-  autoPromote: false,
+-  autoHarvest: true,
+-  autoDate: false,
+-  autoAffairs: true,
+-  itemCount: 5,
+-  dungeonDifficulty: '2',
+-  lmfb: [1, 2],
+-  tasks: ['a'],
+-  server: '',
+-  jc_startTime: ['08', '00'],
+-  jc_endTime: ['10', '00'],
+-  jc_startTime1: ['08', '00'],
+-  jc_endTime1: ['10', '00'],
+-  remarks: "",
+-  scriptContent: "aa",
+-  countdownTime: 30
+-};
++const defaultData = window.UI_DATA?.defaultData || {};
+ 
+-const appTitle = window.UI_DATA?.appTitle || "铦磋澏 2.44";
++const appTitle = window.UI_DATA?.appTitle || "铦磋澏";
+ 
+ 
+ 
+ // 杈呭姪鍑芥暟锛氭繁搴﹀厠闅?[cite: 7, 13]
+ const createNewData = () => JSON.parse(JSON.stringify(defaultData));
++// 瀛樺偍杩滅▼浼犳潵鐨勬暟鎹?+const remoteData = ref({});
+ 
+ // --- 2. 澶氶厤缃鐞嗛€昏緫 ---
+ const showActionSheet = ref(false);
+@@ -68,6 +57,10 @@ const saveAllToLocal = () => {
+ // --- 3. 鏂规鎿嶄綔鍑芥暟 (淇 Promise Cancel 鎶ラ敊) ---
+ const switchConfig = (index) => {
+   activeConfigIndex.value = index;
++  // 鍒囨崲閰嶇疆鏃讹紝濡傛灉鏈夎繙绋嬫暟鎹紝涔熼渶瑕佸悎骞?[cite: user request]
++  if (Object.keys(remoteData.value).length > 0) {
++    Object.assign(configList[index].data, remoteData.value);
++  }
+   saveAllToLocal();
+   showActionSheet.value = false;
+ };
+@@ -96,6 +89,9 @@ const addNewConfig = () => {
+         data: createNewData()
+       });
+       activeConfigIndex.value = configList.length - 1;
++      if (Object.keys(remoteData.value).length > 0) {
++        Object.assign(configList[activeConfigIndex.value].data, remoteData.value);
++      }
+       saveAllToLocal();
+     }
+   }).catch(() => { }); // 鎹曡幏鍙栨秷鎿嶄綔锛岄槻姝㈡帶鍒跺彴鎶ラ敊 [cite: 12, 13]
+@@ -138,6 +134,40 @@ const deleteConfig = (index) => {
+   }).catch(() => { }); // 鎹曡幏鍙栨秷鎿嶄綔 [cite: 18]
+ };
+ 
++const copyConfig = (index) => {
++  if (configList.length >= (window.UI_DATA?.configsLimit || 20)) {
++    return showDialog({ message: '鏂规鏁伴噺宸茶揪涓婇檺' });
++  }
++
++  const sourceConfig = configList[index];
++  let newName = `${sourceConfig.name} 鍓湰`;
++
++  showDialog({
++    title: '澶嶅埗鏂规',
++    showCancelButton: true,
++    message: () => h('div', { style: 'padding: 20px;' }, [
++      h(Field, {
++        modelValue: newName,
++        'onUpdate:modelValue': (val) => (newName = val),
++        placeholder: '璇疯緭鍏ユ柊鏂规鍚嶇О',
++        border: true,
++        autofocus: true
++      })
++    ]),
++  }).then((action) => {
++    if (action === 'confirm') {
++      configList.push({
++        name: newName.trim() || '鏈懡鍚嶅壇鏈?,
++        data: JSON.parse(JSON.stringify(sourceConfig.data))
++      });
++      // 鑷姩鍒囨崲鍒版柊澶嶅埗鐨勬柟妗?+      activeConfigIndex.value = configList.length - 1;
++      saveAllToLocal();
++      showActionSheet.value = false; // 鍏抽棴寮圭獥
++    }
++  }).catch(() => { });
++};
++
+ // --- 4. 閫夋嫨鍣ㄩ€昏緫 ---
+ const getPickerText = (item) => {
+   const val = formData.value[item.key];
+@@ -202,11 +232,22 @@ const filteredTabs = computed(() => {
+   if (!keyword) return settingGroups;
+ 
+   return settingGroups.map(tab => {
++    // 濡傛灉 Tab 鏄粍浠剁被鍨嬶紙濡?Logs锛夛紝鐩存帴杩斿洖锛屼笉闇€瑕佽繃婊?Groups
++    if (tab.component) return { ...tab };
++
++    if (!tab.groups) return null;
+     // 杩囨护 Tab 涓嬬殑 Groups
+     const matchedGroups = tab.groups.map(group => {
+-      const isGroupTitleMatch = group.title.toLowerCase().includes(keyword);
++      if (!group) return null;
++      const groupTitle = group.title ? String(group.title) : '';
++      const isGroupTitleMatch = groupTitle.toLowerCase().includes(keyword);
++
+       // 杩囨护 Group 涓嬬殑 Items
+-      const matchedItems = group.items.filter(item => item.label?.toLowerCase().includes(keyword));
++      const items = group.items || [];
++      const matchedItems = items.filter(item => {
++        const itemLabel = item.label ? String(item.label) : '';
++        return itemLabel.toLowerCase().includes(keyword);
++      });
+ 
+       if (isGroupTitleMatch) return { ...group }; // Group 鏍囬鍖归厤锛屾樉绀烘暣涓?Group
+       if (matchedItems.length > 0) return { ...group, items: matchedItems }; // Items 鍖归厤锛屾樉绀哄尮閰嶇殑 Items
+@@ -226,14 +267,17 @@ watch(searchText, (val) => {
+   if (!val.trim() || filteredTabs.value.length === 0) return;
+ 
+   // 灞曞紑鎵€鏈夊尮閰嶇殑 Groups
+-  const allGroupNames = filteredTabs.value.flatMap(tab => tab.groups.map(g => g.name));
++  const allGroupNames = filteredTabs.value.flatMap(tab => (tab.groups || []).map(g => g.name));
+   activeNames.value = [...new Set([...activeNames.value, ...allGroupNames])];
+ 
+   // 鍒囨崲鍒扮涓€涓湁缁撴灉鐨?Tab
+   // 鍘熷 settingGroups 瀵瑰簲鐨勭储寮?-  const firstMatchedTabTitle = filteredTabs.value[0].title;
+-  const originalIndex = settingGroups.findIndex(tab => tab.title === firstMatchedTabTitle);
+-  if (originalIndex !== -1) activeTab.value = originalIndex;
++  const firstMatchedTab = filteredTabs.value[0];
++  if (firstMatchedTab) {
++    const firstMatchedTabTitle = firstMatchedTab.title;
++    const originalIndex = settingGroups.findIndex(tab => tab.title === firstMatchedTabTitle);
++    if (originalIndex !== -1) activeTab.value = originalIndex;
++  }
+ });
+ 
+ 
+@@ -253,30 +297,125 @@ let timer = null;
+ const handleReload = () => {
+   window.location.reload();
+ };
+-const handleSave = (isSilent = false) => {
++const handleSave = () => {
++  saveAllToLocal();
++  if (window.bridge) {
++    callLuaFun("luaSave", formData.value);
++  }
++  showDialog({ message: `閰嶇疆 [${configList[activeConfigIndex.value].name}] 宸蹭繚瀛榒 }).catch(() => { });
++};
++const stopCountdown = () => {
++  if (timer) clearInterval(timer);
++  showCountdownBtn.value = false;
++};
++const handleNext = () => {
+   saveAllToLocal();
+   console.log(toRaw(formData.value));
+-  callLuaFun("luaFun", toRaw(formData.value));
+-  if (!isSilent) {
+-    showDialog({ message: `閰嶇疆 [${configList[activeConfigIndex.value].name}] 宸蹭繚瀛榒 }).catch(() => { });
++  if (window.bridge) {
++    if (timer) clearInterval(timer);
++    callLuaFun("luaContinue", toRaw(formData.value));
++    window.bridge.confirm(); //鍏抽棴绐楀彛
++  } else {
++    showDialog({ message: `鍊掕鏃剁粨鏉焋 }).catch(() => { });
+   }
+ };
++const handleExit = () => {
++  if (window.bridge) {
++    callLuaFun("luaExitUI");
++    window.bridge.confirm(); //鍏抽棴绐楀彛
++  } else {
++    showDialog({ message: `閫€鍑篳 }).catch(() => { });
++  }
++
++};
++
++
+ 
++
++const showLogsPopup = ref(false);
++const currentLogsData = ref([]);
++
++const handleButtonClick = (item) => {
++  if (item.key === 'openLogs') {
++    // 妯℃嫙浠?JSON 鍒濆鍖栨暟鎹?+    currentLogsData.value = [
++      { id: 1, timestamp: '2023-10-27 10:00:01', name: '2023骞?0鏈?7鏃?0鏃?0鍒?1绉?, size: '12584' },
++      { id: 2, timestamp: '2023-10-27 11:20:15', name: '2023骞?0鏈?7鏃?1鏃?0鍒?5绉?, size: '4521' },
++      { id: 3, timestamp: '2023-10-27 14:05:33', name: '2023骞?0鏈?7鏃?4鏃?5鍒?3绉?, size: '89000' },
++      { id: 4, timestamp: '2023-10-28 09:12:00', name: '2023骞?0鏈?8鏃?9鏃?2鍒?0绉?, size: '1200000' },
++      { id: 5, timestamp: '2023-10-28 10:30:45', name: '2023骞?0鏈?8鏃?0鏃?0鍒?5绉?, size: '33210' }
++    ];
++    showLogsPopup.value = true;
++  } else if (item.key === 'a') {
++    console.log('a');
++  }
++};
++
++
++// 鏂板涓€涓函绮圭殑瑙ｆ瀽鍑芥暟锛堢粰妯℃澘鐢級
++const parseText = (text) => {
++  if (!text || typeof text !== 'string' || !text.includes('${')) return text;
++  // 浼樺寲姝ｅ垯锛氭敮鎸?${a.b} 杩欑澶氱骇鍙栧€?+  return text.replace(/\$\{([\w\.]+)\}/g, (_, key) => {
++    const val = key.split('.').reduce((o, k) => (o || {})[k], constData.value);
++    return val !== undefined ? val : '';
++  });
++};
++const constData = ref({}); // 鍏ㄥ眬鍝嶅簲寮忔暟鎹?+const jsInitLuaData = (_data) => {
++  console.log(_data);
++  try {
++    const data = lua2js(_data) //typeof _data === 'string' ? JSON.parse(_data) : _data;
++    if (data && typeof data === 'object') {
++      Object.assign(formData.value, data.formData);
++      remoteData.value = data.formData; // 淇濆瓨杩滅▼鏁版嵁锛屼互渚垮垏鎹㈡柟妗堟椂浣跨敤
++      // 鏀跺埌鏁版嵁锛屽彧绠″瓨锛屽叾浠栦粈涔堥兘涓嶇敤鍋?+      if (data.constData) Object.assign(constData.value, data.constData);
++    }
++  } catch (e) {
++    console.error("jsInitLuaData parsing error:", e);
++  }
++}
+ onMounted(() => {
++  console.log(1);
++  window.jsInitLuaData = jsInitLuaData;
++  if (window.bridge) {
++    callLuaFun("luaData2js", formData.value);
++  } else {
++    jsInitLuaData(js2lua({ formData: { a: "aa", b: "bb" }, constData: { a: "aa", b: "bb", loop: 2, account: 10 } })); // 娴嬭瘯鐢?+  }
+   timer = setInterval(() => {
+     if (countdown.value > 0) {
+       countdown.value--;
+     } else {
+       clearInterval(timer);
+       showCountdownBtn.value = false;
+-      handleSave(true); // 鍊掕鏃剁粨鏉燂紝闈欓粯淇濆瓨 [cite: 46]
++      handleNext(); // 鍊掕鏃剁粨鏉燂紝闈欓粯淇濆瓨 [cite: 46]
+     }
+   }, 1000);
+ 
+   const mask = document.getElementById('loading-mask');
+-  if (mask) setTimeout(() => { mask.style.opacity = '0'; setTimeout(() => mask.remove(), 200); }, 200);
++  if (mask) setTimeout(() => {
++    mask.style.opacity = '0';
++    setTimeout(() => mask.remove(), 200);
++  }, 200);
++
++  // 鍒濆鍖栫缉鏀?+  updateViewport(formData.value.viewScale || 0.8);
+ });
+ 
++// 鐩戝惉缂╂斁鍙樺寲
++watch(() => formData.value.viewScale, (val) => {
++  updateViewport(val || 1.0);
++});
++
++const updateViewport = (scale) => {
++  const meta = document.querySelector('meta[name="viewport"]');
++  if (meta) {
++    meta.content = `width=device-width, initial-scale=${scale}, maximum-scale=${scale}, minimum-scale=${scale}, user-scalable=no`;
++  }
++};
++
+ onUnmounted(() => { if (timer) clearInterval(timer); });
+ </script>
+ 
+@@ -303,11 +442,13 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
+     </van-sticky>
+ 
+     <van-tabs v-model:active="activeTab" sticky offset-top="100px" animated swipeable color="#1989fa">
+-      <van-tab v-for="(tab, idx) in filteredTabs" :key="idx">
++      <van-tab v-for="(tab, idx) in filteredTabs" :key="tab.title"
++        :name="settingGroups.findIndex(t => t.title === tab.title)">
+         <template #title><van-icon :name="tab.icon" /> {{ tab.title }}</template>
+ 
+         <div class="scroll-content">
+-          <van-collapse v-model="activeNames">
++          <Logs v-if="tab.component === 'Logs'" />
++          <van-collapse v-model="activeNames" v-else>
+             <!-- 姝ゆ椂 group 鏄?tab.groups 涓殑椤?-->
+             <template v-for="group in tab.groups" :key="group.name">
+               <van-collapse-item :title="group.title" :name="group.name">
+@@ -319,21 +460,22 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
+ 
+                   <van-cell v-if="item.type === 'stepper'" :title="item.label">
+                     <template #value><van-stepper v-model="formData[item.key]" :min="item.min" :max="item.max"
+-                        :input-width="item.width" /></template>
++                        :step="item.step || 1" :input-width="item.width" /></template>
+                   </van-cell>
+ 
+                   <van-cell v-if="item.type === 'radio'" :title="item.label">
+                     <template #right-icon>
+                       <van-radio-group v-model="formData[item.key]" direction="horizontal">
+                         <van-radio v-for="opt in item.options" :key="opt.value" :name="opt.value">{{ opt.text
+-                        }}</van-radio>
++                          }} </van-radio>
+                       </van-radio-group>
+                     </template>
+                   </van-cell>
+                   <van-cell v-if="item.type === 'checkbox'" :title="item.label"
+-                    :title-style="{ minWidth: item.label_minWidth || '120px' }">
++                    :title-style="{ minWidth: item.label_width || '120px' }">
+                     <template #right-icon><van-checkbox-group v-model="formData[item.key]" direction="horizontal">
+-                        <van-checkbox v-for="opt in item.options" :key="opt.value" :name="opt.value" shape="square">
++                        <van-checkbox v-for="opt in item.options" :key="opt.value" :name="opt.value" shape="square"
++                          :style="item.checkbox_width ? { minWidth: item.checkbox_width } : null">
+                           {{ opt.text }}
+                         </van-checkbox>
+                       </van-checkbox-group>
+@@ -346,7 +488,13 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
+                     :model-value="`${formData[item.startKey].join(':')} - ${formData[item.endKey].join(':')}`" is-link
+                     readonly @click="onOpenTimeRange(item)" />
+                   <van-field v-if="item.type === 'input'" v-model="formData[item.key]" :label="item.label"
+-                    :placeholder="item.placeholder" />
++                    :placeholder="item.placeholder">
++                    <template #button v-if="item.btnText">
++                      <van-button size="small" type="primary" @click="handleButtonClick(item)"
++                        style="min-width: 50px;">{{ item.btnText
++                        }}</van-button>
++                    </template>
++                  </van-field>
+                   <van-field v-if="item.type === 'textarea'" v-model="formData[item.key]" :label="item.label"
+                     type="textarea" :rows="item.rows" autosize show-word-limit maxlength="500"
+                     :placeholder="item.placeholder" />
+@@ -361,9 +509,25 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
+                         class="line-number-field" :placeholder="item.placeholder" />
+                     </div>
+                   </div>
++                  <van-cell v-if="item.type === 'button'" :title="item.label">
++                    <template #right-icon>
++                      <van-button size="small" type="primary" @click="handleButtonClick(item)">{{ item.btnText
++                        }} </van-button>
++                    </template>
++                  </van-cell>
+                   <div v-if="item.type === 'desc'" class="van-cell hint" style="white-space: pre-line;">{{ item.desc
+-                    }}
++                  }}
+                   </div>
++                  <van-cell v-if="item.type === 'cell'" style="white-space: pre-line;" :icon="item.icon"
++                    :title="parseText(item.title)" :value="item.value">
++                  </van-cell>
++                  <Transfer v-if="item.type === 'transfer'" v-model="formData[item.key]"
++                    :options="formData[item.options] || []" />
++                  <pre style="font-size: 10px; color: red;" v-if="item.type === 'transfer'">
++          Key: {{ item.key }}
++          Selected: {{ formData[item.key] }}
++          Options Count: {{ formData[item.options]?.length }}
++        </pre>
+                 </div>
+               </van-collapse-item>
+             </template>
+@@ -372,19 +536,22 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
+       </van-tab>
+     </van-tabs>
+ 
++    <van-popup v-model:show="showLogsPopup" position="bottom" closeable>
++      <Logs :log-data="currentLogsData" />
++    </van-popup>
++
+ 
+ 
+     <div class="footer-bar bui-box-space">
+-      <van-button type="danger" class="bui-span1"
+-        @click="showDialog({ message: '宸查€€鍑? }).catch(() => { })">閫€鍑?/van-button>
++      <van-button type="danger" class="bui-span1" @click="handleExit">閫€鍑?/van-button>
+ 
+       <transition name="fade-scale">
+-        <van-button v-if="showCountdownBtn" type="success" class="bui-span2" @click="showCountdownBtn = false">
++        <van-button v-if="showCountdownBtn" type="success" class="bui-span2" @click="stopCountdown">
+           鍋滄鍊掕鏃?({{ countdown }}s)
+         </van-button>
+       </transition>
+ 
+-      <van-button type="primary" class="bui-span1" @click="handleSave(false)">淇濆瓨閰嶇疆</van-button>
++      <van-button type="primary" class="bui-span1" @click="handleNext()">缁х画</van-button>
+     </div>
+     <van-action-sheet v-model:show="showActionSheet" title="鏂规绠＄悊">
+       <div class="sheet-content">
+@@ -395,6 +562,7 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
+             <span>{{ conf.name }}</span>
+           </div>
+           <div class="actions">
++            <van-icon name="description" @click.stop="copyConfig(idx)" />
+             <van-icon name="edit" @click.stop="renameConfig(idx)" />
+             <van-icon name="delete-o" color="#ee0a24" @click.stop="deleteConfig(idx)" />
+           </div>
+@@ -599,4 +767,10 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
+ :deep(.textarea-title) {
+   color: var(--van-cell-text-color);
+ }
++
++:deep(.van-field__label) {
++  /*鍙宠竟鏈夋寜閽椂淇濇寔鏂囧瓧鍨傜洿灞呬腑*/
++  display: flex;
++  align-items: center;
++}
+ </style>
+\ No newline at end of file
+diff --git a/src/components/HelloWorld.vue b/src/components/HelloWorld.vue
+deleted file mode 100644
+index 546ebbc..0000000
+--- a/src/components/HelloWorld.vue
++++ /dev/null
+@@ -1,43 +0,0 @@
+-<script setup>
+-import { ref } from 'vue'
+-
+-defineProps({
+-  msg: String,
+-})
+-
+-const count = ref(0)
+-</script>
+-
+-<template>
+-  <h1>{{ msg }}</h1>
+-
+-  <div class="card">
+-    <button type="button" @click="count++">count is {{ count }}</button>
+-    <p>
+-      Edit
+-      <code>components/HelloWorld.vue</code> to test HMR
+-    </p>
+-  </div>
+-
+-  <p>
+-    Check out
+-    <a href="https://vuejs.org/guide/quick-start.html#local" target="_blank"
+-      >create-vue</a
+-    >, the official Vue + Vite starter
+-  </p>
+-  <p>
+-    Learn more about IDE Support for Vue in the
+-    <a
+-      href="https://vuejs.org/guide/scaling-up/tooling.html#ide-support"
+-      target="_blank"
+-      >Vue Docs Scaling up Guide</a
+-    >.
+-  </p>
+-  <p class="read-the-docs">Click on the Vite and Vue logos to learn more</p>
+-</template>
+-
+-<style scoped>
+-.read-the-docs {
+-  color: #888;
+-}
+-</style>
+diff --git a/src/components/Logs.vue b/src/components/Logs.vue
+new file mode 100644
+index 0000000..95686b5
+--- /dev/null
++++ b/src/components/Logs.vue
+@@ -0,0 +1,169 @@
++<template>
++  <div class="log-manager">
++    <div class="top-action-bar" fixed z-index="1000">
++      <van-button size="small" @click="checkAll">鍏ㄩ€?/van-button>
++      <van-button size="small" @click="toggleAll">鍙嶉€?/van-button>
++      <van-button size="small" type="danger" icon="delete-o" :disabled="!checkedIds.length"
++        @click="batchDelete">鎵归噺鍒犻櫎</van-button>
++      <van-button size="small" type="primary" icon="upgrade" :disabled="!checkedIds.length"
++        @click="batchUpload">鎵归噺涓婁紶</van-button>
++      <div class="selected-count">宸查€?{{ checkedIds.length }} 椤?/div>
++    </div>
++
++    <div class="list-wrapper">
++      <van-checkbox-group v-model="checkedIds" ref="checkboxGroup">
++        <van-cell v-for="(item, index) in logs" :key="item.id" center @click="toggle(item.id)">
++          <template #icon>
++            <van-checkbox :name="item.id" @click.stop ref="checkboxes" style="margin-right: 12px" shape="square" />
++          </template>
++          <template #title>
++            <span class="log-id">ID: {{ item.id }}--</span>
++            <span class="log-name">{{ item.name }}</span>
++            <van-tag type="primary" plain style="margin-left: 8px">{{ formatSize(item.size) }}</van-tag>
++          </template>
++        </van-cell>
++      </van-checkbox-group>
++
++      <van-empty v-if="logs.length === 0" description="鏆傛棤鏃ュ織鏁版嵁" />
++    </div>
++  </div>
++</template>
++
++<script setup>
++import { ref, watch } from 'vue';
++import { showConfirmDialog, showToast, showSuccessToast } from 'vant';
++
++const props = defineProps({
++  logData: {
++    type: Array,
++    default: () => []
++  }
++});
++
++const logs = ref([...props.logData]);
++
++watch(() => props.logData, (newVal) => {
++  logs.value = [...newVal];
++}, { deep: true });
++
++
++const checkedIds = ref([]); // 瀛樺偍閫変腑鐨?ID
++const checkboxGroup = ref(null);
++
++const formatSize = (sizeStr, decimals = 2) => {
++  // 澶勭悊鍚勭杈撳叆
++  const size = Number(sizeStr);
++  if (isNaN(size) || size < 0) return '0 B';
++  if (size === 0) return '0 B';
++
++  const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
++  const base = 1024;
++  const index = Math.floor(Math.log(size) / Math.log(base));
++
++  // 闄愬埗鏈€澶у崟浣?+  const safeIndex = Math.min(index, units.length - 1);
++
++  // 鏍煎紡鍖栨暟瀛楋紝绉婚櫎涓嶅繀瑕佺殑灏鹃殢闆?+  const formattedSize = parseFloat((size / Math.pow(base, safeIndex)).toFixed(decimals));
++
++  return formattedSize + ' ' + units[safeIndex];
++};
++
++// 鍒囨崲閫変腑鐘舵€?+const toggle = (id) => {
++  const index = checkedIds.value.indexOf(id);
++  if (index > -1) {
++    checkedIds.value.splice(index, 1);
++  } else {
++    checkedIds.value.push(id);
++  }
++};
++
++// --- 鎵归噺鍔熻兘 ---
++
++// 鍏ㄩ€?+const checkAll = () => {
++  checkedIds.value = logs.value.map(item => item.id);
++};
++
++// 鍙嶉€?+const toggleAll = () => {
++  const allIds = logs.value.map(item => item.id);
++  checkedIds.value = allIds.filter(id => !checkedIds.value.includes(id));
++};
++
++// 鎵归噺鍒犻櫎
++const batchDelete = () => {
++  showConfirmDialog({
++    title: '鎵归噺鍒犻櫎纭',
++    message: `纭畾瑕佸垹闄ら€変腑鐨?${checkedIds.value.length} 鏉¤褰曞悧锛焋,
++  }).then(() => {
++    logs.value = logs.value.filter(item => !checkedIds.value.includes(item.id));
++    checkedIds.value = []; // 娓呯┖閫変腑
++    showSuccessToast('鎵归噺鍒犻櫎鎴愬姛');
++  });
++};
++
++// 鎵归噺涓婁紶
++const batchUpload = () => {
++  showToast(`姝ｅ湪涓婁紶 ${checkedIds.value.length} 鏉℃暟鎹?..`);
++  setTimeout(() => {
++    showSuccessToast('涓婁紶瀹屾垚');
++    checkedIds.value = []; // 涓婁紶鍚庨€氬父娓呯┖閫変腑
++  }, 1500);
++};
++
++</script>
++
++<style scoped>
++.log-manager {
++  min-height: 44px;
++  background-color: #f7f8fa;
++  padding-bottom: 8px;
++  /* 涓哄簳閮ㄦ搷浣滄爮鐣欏嚭绌洪棿 */
++}
++
++.list-wrapper {
++  margin-top: 8px;
++}
++
++.log-id {
++  font-weight: bold;
++}
++
++/* 婊戝姩鎸夐挳鏍峰紡 */
++.action-btn {
++  height: 100%;
++}
++
++/* 椤堕儴鎿嶄綔鏍?*/
++.top-action-bar {
++  background: #fff;
++  padding: 10px 16px;
++  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
++  display: flex;
++  align-items: center;
++}
++
++
++.top-action-bar .van-button {
++  margin-right: 8px;
++  padding: 0 15px;
++}
++
++.selected-count {
++  margin-left: auto;
++  margin-right: 50px;
++  font-size: 13px;
++  color: #646566;
++}
++
++.bottom-btns {
++  display: flex;
++  gap: 12px;
++}
++
++:deep(.van-cell) {
++  align-items: center;
++}
++</style>
+\ No newline at end of file
+diff --git a/src/components/Transfer.vue b/src/components/Transfer.vue
+new file mode 100644
+index 0000000..bff2aa9
+--- /dev/null
++++ b/src/components/Transfer.vue
+@@ -0,0 +1,155 @@
++<template>
++  <div class="draggable-transfer">
++    <div class="transfer-header">
++      <span class="title">宸查€夋嫨 (鎸夐『搴忔帓鍒?</span>
++      <span class="count">{{ modelValue.length }}/{{ options.length }}</span>
++    </div>
++
++    <div class="chosen-container">
++      <transition-group name="list">
++        <van-tag v-for="(item, index) in sortedChosenItems" :key="item.id" closeable size="large" type="primary"
++          class="order-tag" @close="handleRemove(item.id)">
++          <span class="index-dot">{{ index + 1 }}</span>
++          {{ item.name }}
++        </van-tag>
++      </transition-group>
++      <div v-if="modelValue.length === 0" class="empty-text">璇峰湪涓嬫柟閫夋嫨閫夐」</div>
++    </div>
++
++    <div class="transfer-header">
++      <span class="title">澶囬€夐」</span>
++    </div>
++
++    <van-checkbox-group :model-value="modelValue" @update:model-value="onCheckboxChange">
++      <van-cell-group inset>
++        <van-cell v-for="item in options" :key="item.id" :title="item.name" clickable @click="toggle(item.id)">
++          <template #right-icon>
++            <van-checkbox :name="item.id" @click.stop />
++          </template>
++        </van-cell>
++      </van-cell-group>
++    </van-checkbox-group>
++  </div>
++</template>
++
++<script setup>
++import { computed } from 'vue';
++
++const props = defineProps({
++  // 鎵€鏈夌殑閫夐」鏁版嵁
++  options: {
++    type: Array,
++    required: true,
++    default: () => []
++  },
++  // 閫変腑鐨?ID 鏁扮粍锛堥『搴忕浉鍏筹級
++  modelValue: {
++    type: Array,
++    default: () => []
++  }
++});
++
++const emit = defineEmits(['update:modelValue']);
++
++// 鏍规嵁 modelValue 鐨勯『搴忥紝璁＄畻鍑哄畬鏁寸殑瀵硅薄鍒楄〃
++const sortedChosenItems = computed(() => {
++  return props.modelValue
++    .map(id => props.options.find(opt => opt.id === id))
++    .filter(item => !!item);
++});
++
++// 澶勭悊鐐瑰嚮 Cell 鏃剁殑閫昏緫
++const toggle = (id) => {
++  const newValue = [...props.modelValue];
++  const index = newValue.indexOf(id);
++
++  if (index > -1) {
++    newValue.splice(index, 1); // 濡傛灉宸插瓨鍦紝绉婚櫎
++  } else {
++    newValue.push(id); // 濡傛灉涓嶅瓨鍦紝鎺ㄥ叆鏈熬锛堝疄鐜版帓搴忚褰曪級
++  }
++  emit('update:modelValue', newValue);
++};
++
++// 澶勭悊 CheckboxGroup 鍐呴儴瑙﹀彂鐨勫彉鍖?+const onCheckboxChange = (newIds) => {
++  // 濡傛灉鏄彇娑堝嬀閫夛紝闇€瑕佷繚鎸佸師鏈夐『搴忎腑鍘绘帀閭ｄ釜 ID
++  // 濡傛灉鏄柊澧炲嬀閫夛紝闇€瑕佹壘鍒版柊澧炵殑 ID 骞?push 鍒版湯灏?+  if (newIds.length < props.modelValue.length) {
++    const updatedValue = props.modelValue.filter(id => newIds.includes(id));
++    emit('update:modelValue', updatedValue);
++  } else {
++    const addedId = newIds.find(id => !props.modelValue.includes(id));
++    if (addedId !== undefined) {
++      emit('update:modelValue', [...props.modelValue, addedId]);
++    }
++  }
++};
++
++// 绉婚櫎鐗瑰畾椤?+const handleRemove = (id) => {
++  const newValue = props.modelValue.filter(itemId => itemId !== id);
++  emit('update:modelValue', newValue);
++};
++</script>
++
++<style scoped>
++.draggable-transfer {
++  background: #f7f8fa;
++  padding-bottom: 20px;
++}
++
++.transfer-header {
++  display: flex;
++  justify-content: space-between;
++  padding: 16px 20px 8px;
++  font-size: 14px;
++  color: #969799;
++}
++
++.chosen-container {
++  margin: 0 16px 16px;
++  padding: 12px;
++  background: #fff;
++  border-radius: 8px;
++  min-height: 44px;
++  display: flex;
++  flex-wrap: wrap;
++  gap: 8px;
++}
++
++.order-tag {
++  padding: 4px 8px;
++}
++
++.index-dot {
++  background: rgba(255, 255, 255, 0.3);
++  width: 16px;
++  height: 16px;
++  display: inline-flex;
++  align-items: center;
++  justify-content: center;
++  border-radius: 50%;
++  font-size: 10px;
++  margin-right: 4px;
++}
++
++.empty-text {
++  color: #ccc;
++  font-size: 13px;
++  width: 100%;
++  text-align: center;
++}
++
++/* 鍒楄〃鍔ㄧ敾锛氳 Tag 鐨勫嚭鐜板拰娑堝け鏇村钩婊?*/
++.list-enter-active,
++.list-leave-active {
++  transition: all 0.3s ease;
++}
++
++.list-enter-from,
++.list-leave-to {
++  opacity: 0;
++  transform: scale(0.8);
++}
++</style>
+\ No newline at end of file

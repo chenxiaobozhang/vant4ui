@@ -1,0 +1,703 @@
+/* ==========================================================================
+   theme-glass.css: Glassmorphism Cyberpunk Skin (80% Opacity Background & No Blur)
+   ========================================================================== */
+
+:root {
+  --van-background-2: rgba(255, 255, 255, var(--bg-opacity, 1)) !important;
+}
+
+html, body, #app {
+  background: transparent !important;
+}
+
+/* 1. Global Background (80% Transparency / 20% Opaque Dark Overlay) */
+.theme-glass {
+  background: rgba(15, 23, 42, var(--bg-opacity, 0.2)) !important;
+  min-height: 100vh;
+  color: #f8fafc !important;
+}
+
+html.theme-glass,
+body.theme-glass,
+#app .theme-glass.app-container {
+  background: transparent !important;
+  color: #f8fafc !important;
+}
+
+/* 2. Sticky Header / Navigation Bar (Opaque enough to block background text) */
+#app .theme-glass .fixed-header .van-nav-bar,
+#app .theme-glass .van-nav-bar {
+  background: rgba(15, 23, 42, 0.85) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.theme-glass .van-nav-bar__title {
+  font-weight: 700 !important;
+  background: linear-gradient(90deg, #818cf8, #c084fc) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  text-shadow: 0 0 10px rgba(129, 140, 248, 0.2) !important;
+}
+
+.theme-glass .van-nav-bar .van-icon {
+  color: #818cf8 !important;
+}
+
+/* Fix: Allow click events to pass through the wide title container to search button beneath */
+#app .van-nav-bar__title {
+  pointer-events: none !important;
+}
+#app .van-nav-bar__title * {
+  pointer-events: auto !important;
+}
+
+/* 3. Search Bar */
+.theme-glass .search-normal-wrap {
+  background: transparent !important;
+  padding: 5px 10px !important;
+}
+.theme-glass .search-normal-wrap .van-search {
+  background: transparent !important;
+  padding: 0 !important;
+}
+.theme-glass .van-search__content {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 12px !important;
+}
+.theme-glass .van-search__field .van-field__control {
+  color: #f8fafc !important;
+}
+/* 强力控制搜索框内所有的放大镜和清除图标颜色 */
+.theme-glass .van-search .van-field__left-icon,
+.theme-glass .van-search .van-field__left-icon .van-icon,
+.theme-glass .van-search .van-icon-search,
+.theme-glass .van-search .van-field__clear {
+  color: #94a3b8 !important;
+  -webkit-text-fill-color: #94a3b8 !important;
+  opacity: 1 !important;
+}
+
+/* 4. Tabs styling */
+.theme-glass .van-tabs {
+  background: transparent !important;
+}
+#app .theme-glass .van-tabs__wrap {
+  background: rgba(15, 23, 42, 0.85) !important;
+  background-color: rgba(15, 23, 42, 0.85) !important;
+  border-radius: 12px !important;
+  margin: 10px 10px 10px 10px !important;
+  width: calc(100% - 20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-sizing: border-box !important;
+}
+#app .theme-glass .van-tabs__nav {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+.theme-glass .van-tab {
+  color: #94a3b8 !important;
+}
+.theme-glass .van-tab--active {
+  color: #818cf8 !important;
+  font-weight: bold !important;
+}
+.theme-glass .van-tabs__line {
+  background-color: #818cf8 !important;
+}
+
+/* 5. Collapse & Card Items (Opaque enough for readability, blur filter removed to eliminate rendering lag) */
+.theme-glass .van-collapse {
+  background: transparent !important;
+  padding: 12px 10px !important;
+}
+.theme-glass .van-collapse-item {
+  background: rgba(15, 23, 42, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 16px !important;
+  margin-bottom: 15px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+  overflow: hidden;
+}
+.theme-glass .van-collapse-item__title {
+  background: transparent !important;
+  color: #818cf8 !important; /* Indigo header */
+  font-weight: 600 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+.theme-glass .van-collapse-item__content {
+  background: transparent !important;
+  color: #f8fafc !important;
+  padding: 8px 12px !important;
+}
+
+/* 6. Vant Cells & Fields */
+.theme-glass .van-cell {
+  background: transparent !important;
+  color: #f8fafc !important;
+}
+#app .theme-glass .hint {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 8px !important;
+  margin: 6px 16px !important;
+  padding: 8px 12px !important;
+  color: #94a3b8 !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+  width: auto !important; /* 关键修复：覆盖 Vant Cell 默认的 width: 100%，防止右侧溢出裁剪 */
+}
+
+/* Consecutive hint boxes styling to merge them into a single clean container */
+#app .theme-glass .hint:has(+ .hint) {
+  margin-bottom: 0 !important;
+  border-bottom: none !important;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  padding-bottom: 2px !important; /* 关键修复：减少内部行与行之间的额外 padding */
+}
+
+#app .theme-glass .hint + .hint {
+  margin-top: 0 !important;
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+  padding-top: 2px !important; /* 关键修复：减少内部行与行之间的额外 padding */
+}
+.theme-glass .van-cell__title,
+.theme-glass .van-field__label {
+  color: #94a3b8 !important; /* Text muted for labels */
+}
+.theme-glass .van-cell__value,
+.theme-glass .van-field__value {
+  color: #f8fafc !important;
+}
+.theme-glass .van-cell::after {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* 7. Input Fields - Default Light Mode */
+input.van-field__control:not([readonly]),
+.van-cell input:not([readonly]):not(.van-stepper__input),
+.van-cell textarea {
+  background: rgba(0, 0, 0, 0.03) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  color: #323233 !important;
+  border-radius: 8px !important;
+  padding: 6px 10px !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s ease !important;
+}
+input.van-field__control:not([readonly]),
+.van-cell input:not([readonly]):not(.van-input-bg):not(.van-stepper__input),
+.van-cell textarea {
+  width: 100% !important;
+}
+
+input.van-field__control:not([readonly]):focus,
+.van-cell input:not([readonly]):not(.van-stepper__input):focus,
+.van-cell textarea:focus {
+  border-color: #1989fa !important;
+  background: rgba(0, 0, 0, 0.01) !important;
+  box-shadow: 0 0 6px rgba(25, 137, 250, 0.2) !important;
+  outline: none !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(100, 116, 139, 0.5) !important;
+}
+
+/* 7. Input Fields - Theme Glass Mode Override */
+.theme-glass input.van-field__control:not([readonly]),
+.theme-glass input:not([readonly]):not(.van-stepper__input),
+.theme-glass textarea {
+  background: rgba(15, 23, 42, 0.45) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+  border-radius: 8px !important;
+  padding: 6px 10px !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s ease !important;
+}
+.theme-glass input.van-field__control:not([readonly]),
+.theme-glass input:not([readonly]):not(.van-input-bg):not(.van-stepper__input),
+.theme-glass textarea {
+  width: 100% !important;
+}
+
+.theme-glass input.van-field__control:not([readonly]):focus,
+.theme-glass input:not([readonly]):not(.van-stepper__input):focus,
+.theme-glass textarea:focus {
+  border-color: #6366f1 !important;
+  background: rgba(15, 23, 42, 0.6) !important;
+  box-shadow: 0 0 8px rgba(99, 102, 241, 0.3) !important;
+  outline: none !important;
+}
+
+.theme-glass input::placeholder,
+.theme-glass textarea::placeholder {
+  color: rgba(148, 163, 184, 0.35) !important;
+}
+
+/* 消除搜索框内部 input 标签被全局 input 规则覆盖及 focus 污染导致的双重边框（明亮/暗黑通用） */
+.van-search input.van-field__control,
+.van-search input.van-field__control:focus {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Darker input backgrounds for number steppers and manual inputs */
+.theme-glass .van-input-bg,
+.theme-glass .van-stepper__input {
+  background: rgba(15, 23, 42, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #f8fafc !important;
+  border-radius: 8px !important;
+}
+.theme-glass .van-stepper__minus,
+.theme-glass .van-stepper__plus {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+  border-radius: 4px !important;
+}
+
+/* 8. Steppers / Checkbox / Radios */
+.theme-glass .van-checkbox__label,
+.theme-glass .van-radio__label {
+  color: #f8fafc !important;
+}
+.theme-glass .van-checkbox__icon .van-icon,
+.theme-glass .van-radio__icon .van-icon {
+  background-color: rgba(15, 23, 42, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+.theme-glass .van-checkbox__icon--checked .van-icon,
+.theme-glass .van-radio__icon--checked .van-icon {
+  background-color: #6366f1 !important;
+  border-color: #6366f1 !important;
+}
+
+/* 9. Buttons */
+.theme-glass .van-button--primary {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+  border: none !important;
+  color: #fff !important;
+  border-radius: 8px !important;
+}
+.theme-glass .van-button--danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  border: none !important;
+}
+.theme-glass .van-button--success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  border: none !important;
+}
+.theme-glass .van-button--warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  border: none !important;
+}
+.theme-glass .van-button--plain {
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #f8fafc !important;
+}
+
+/* Special styling for custom green/pink/outline buttons in Debug Panel */
+.theme-glass .btn-green {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  border: none !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2) !important;
+}
+.theme-glass .btn-pink {
+  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%) !important;
+  border: none !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.2) !important;
+}
+.theme-glass .btn-outline-indigo {
+  background: transparent !important;
+  border: 1px solid #6366f1 !important;
+  color: #ffffff !important;
+}
+
+/* 9.5. Scheme Selection Cell (方案管理) */
+.theme-glass .app-container > .van-cell:first-of-type {
+  background: rgba(15, 23, 42, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 12px !important;
+  margin: 10px 10px 5px 10px !important;
+  width: calc(100% - 20px) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+  box-sizing: border-box !important;
+}
+
+.theme-glass .app-container > .van-cell:first-of-type::after {
+  display: none !important;
+}
+
+.theme-glass .app-container > .van-cell:first-of-type .van-cell__title {
+  color: #f8fafc !important;
+  font-weight: 600 !important;
+}
+
+.theme-glass .app-container > .van-cell:first-of-type .van-button--plain {
+  background: rgba(99, 102, 241, 0.1) !important;
+  border-color: #6366f1 !important;
+  color: #818cf8 !important;
+  box-shadow: 0 0 8px rgba(99, 102, 241, 0.2) !important;
+}
+
+/* 10. Sticky Footer Bar */
+.theme-glass .footer-bar {
+  background: rgba(15, 23, 42, 0.85) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 11. Dialogs, Popups and Pickers (Drop-downs) */
+.theme-glass {
+  --van-background-2: rgba(15, 23, 42, 0.92) !important;
+  --van-text-color: #f8fafc !important;
+  --van-text-color-2: #94a3b8 !important;
+  --van-text-color-3: #64748b !important;
+  --van-border-color: rgba(255, 255, 255, 0.08) !important;
+  
+  --van-picker-background: rgba(15, 23, 42, 0.92) !important;
+  --van-picker-group-background: rgba(15, 23, 42, 0.92) !important;
+  --van-picker-mask-color: linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.4)), linear-gradient(0deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.4)) !important;
+  --van-picker-loading-mask-color: rgba(15, 23, 42, 0.8) !important;
+}
+
+.theme-glass .van-popup {
+  background: rgba(15, 23, 42, 0.92) !important;
+  color: #f8fafc !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Bottom Popups (like Picker, TimePicker) */
+.theme-glass .van-popup--bottom {
+  border: none !important;
+  border-top: 1.5px solid rgba(129, 140, 248, 0.5) !important; /* Indigo glow line */
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Right Popups (like Local Scheme Manager) */
+.theme-glass .van-popup--right {
+  border: none !important;
+  border-left: 1.5px solid rgba(129, 140, 248, 0.5) !important; /* Indigo glow line */
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.8) !important;
+}
+
+.theme-glass .van-dialog {
+  border-radius: 20px !important;
+  background: rgba(15, 23, 42, 0.95) !important;
+}
+
+.theme-glass .van-dialog__header {
+  color: #f8fafc !important;
+}
+
+.theme-glass .van-dialog__message {
+  color: #94a3b8 !important;
+}
+
+.theme-glass .van-dialog__footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.theme-glass [class*='van-hairline']::after {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.theme-glass .van-dialog__confirm,
+.theme-glass .van-dialog__confirm:active {
+  color: #818cf8 !important;
+}
+
+.theme-glass .van-dialog__cancel,
+.theme-glass .van-dialog__cancel:active {
+  color: #94a3b8 !important;
+}
+
+/* Picker Popup Adjustments & Picker Group */
+.theme-glass .van-picker-group {
+  background: rgba(15, 23, 42, 0.92) !important;
+  color: #f8fafc !important;
+}
+
+.theme-glass .van-picker__toolbar,
+.theme-glass .van-picker-group__toolbar {
+  background: rgba(15, 23, 42, 0.92) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.theme-glass .van-picker__title,
+.theme-glass .van-picker-group__title {
+  color: #f8fafc !important;
+  font-weight: bold !important;
+}
+
+.theme-glass .van-picker-group__tabs {
+  background: rgba(15, 23, 42, 0.92) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.theme-glass .van-picker-group__tabs .van-tab {
+  color: #94a3b8 !important;
+}
+
+.theme-glass .van-picker-group__tabs .van-tab--active {
+  color: #818cf8 !important;
+  font-weight: bold !important;
+}
+
+.theme-glass .van-picker-group__tabs .van-tabs__line {
+  background-color: #818cf8 !important;
+}
+
+.theme-glass .van-picker {
+  background: transparent !important;
+}
+
+.theme-glass .van-picker__cancel,
+.theme-glass .van-picker-group__cancel {
+  color: #94a3b8 !important;
+}
+
+.theme-glass .van-picker__confirm,
+.theme-glass .van-picker-group__confirm {
+  color: #818cf8 !important;
+}
+
+.theme-glass .van-picker-column__item {
+  color: rgba(148, 163, 184, 0.5) !important;
+}
+
+.theme-glass .van-picker-column__item--selected {
+  color: #f8fafc !important;
+  font-weight: bold !important;
+}
+
+.theme-glass .van-picker__mask {
+  background-image: var(--van-picker-mask-color) !important;
+}
+
+.theme-glass .van-picker__frame {
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+
+/* 12. Scheme Manager & Recycle Bin */
+.theme-glass .scheme-manager-popup,
+.theme-glass .recycle-popup,
+.theme-glass .backup-popup {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.theme-glass .instructions-card {
+  background: rgba(15, 23, 42, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  color: #94a3b8 !important;
+  box-shadow: none !important;
+}
+
+.theme-glass .instructions-card span {
+  color: #94a3b8 !important;
+}
+
+.theme-glass .config-row {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+}
+
+.theme-glass .config-row-inner {
+  background: transparent !important;
+  color: #f8fafc !important;
+}
+
+.theme-glass .config-row-inner span {
+  color: #f8fafc !important;
+}
+
+.theme-glass .config-row-inner .van-icon-notes-o {
+  color: #94a3b8 !important;
+}
+
+.theme-glass .config-row.active {
+  background: rgba(99, 102, 241, 0.1) !important;
+  border-color: #6366f1 !important;
+  color: #818cf8 !important;
+}
+
+.theme-glass .config-row.active .config-row-inner {
+  color: #818cf8 !important;
+}
+
+.theme-glass .config-row.active .name-info span {
+  color: #818cf8 !important;
+}
+
+.theme-glass .bottom-action-bar {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+.theme-glass .recycle-item,
+.theme-glass .recycle-empty {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+}
+
+.theme-glass .recycle-item span {
+  color: #f8fafc !important;
+}
+
+/* Recycle bin empty status */
+.theme-glass .van-empty__description {
+  color: #94a3b8 !important;
+}
+
+/* Dialog Separation & Custom Overlay dimming */
+.theme-glass .van-dialog {
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 10px 45px rgba(0, 0, 0, 0.9), 0 0 20px rgba(99, 102, 241, 0.25) !important;
+}
+
+.theme-glass .van-overlay {
+  background-color: rgba(0, 0, 0, 0.65) !important;
+}
+
+.theme-glass .dialog-input-field {
+  background: rgba(15, 23, 42, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #f8fafc !important;
+}
+
+.theme-glass .dialog-input-field .van-field__control {
+  color: #f8fafc !important;
+}
+
+.theme-glass .dialog-alert-box {
+  background: rgba(237, 106, 12, 0.12) !important;
+  border: 1px solid rgba(237, 106, 12, 0.25) !important;
+  color: #ffa366 !important;
+}
+
+/* 13. Textarea and TextareaEx (Code style with line numbers) */
+.theme-glass .textarea-container {
+  background: transparent !important;
+}
+.theme-glass .textarea-title {
+  color: #94a3b8 !important;
+}
+.theme-glass .custom-textarea-wrapper {
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(15, 23, 42, 0.5) !important;
+}
+.theme-glass .line-numbers {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: rgba(148, 163, 184, 0.4) !important;
+}
+
+/* 14. Logs Component Glass Adaptation */
+.theme-glass .log-manager {
+  background-color: transparent !important;
+}
+.theme-glass .fixed-area {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+.theme-glass .top-action-bar {
+  background: transparent !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+}
+.theme-glass .status-summary {
+  color: rgba(148, 163, 184, 0.5) !important;
+}
+.theme-glass .log-item-wrapper {
+  background-color: rgb(15, 23, 42) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+}
+.theme-glass .log-item-wrapper:active {
+  background-color: rgba(99, 102, 241, 0.1) !important;
+  border-color: #6366f1 !important;
+}
+.theme-glass .log-id {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  color: #818cf8 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+.theme-glass .log-name {
+  color: #f8fafc !important;
+}
+.theme-glass .list-wrapper {
+  background: transparent !important;
+}
+
+/* 15. Transfer (穿梭框) Component Glass adaptation */
+.theme-glass .draggable-transfer {
+  background: rgba(15, 23, 42, 0.95) !important;
+}
+
+.theme-glass .transfer-header {
+  color: #94a3b8 !important;
+}
+
+.theme-glass .chosen-container {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.theme-glass .empty-text {
+  color: rgba(148, 163, 184, 0.4) !important;
+}
+
+.theme-glass .order-tag {
+  background: rgba(99, 102, 241, 0.15) !important;
+  border: 1px solid rgba(99, 102, 241, 0.3) !important;
+  color: #a5b4fc !important;
+}
+
+.theme-glass .options-list {
+  background: transparent !important;
+}
+
+.theme-glass .draggable-transfer .van-cell {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  color: #f8fafc !important;
+}
+
+.theme-glass .draggable-transfer .van-cell__title {
+  color: #f8fafc !important;
+}
+
+.theme-glass .empty-options {
+  color: rgba(148, 163, 184, 0.4) !important;
+}
+
+/* 强力重置：彻底消除明亮/暗黑模式下搜索框内部 input 的一切背景、边框、内边距与投影，消除抖动并让出放大镜空间 */
+.van-search input.van-field__control,
+.van-search input.van-field__control:focus,
+.theme-glass .van-search input.van-field__control,
+.theme-glass .van-search input.van-field__control:focus {
+  background: transparent !important;
+  border: none !important;
+  border-width: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  height: auto !important;     /* 恢复 Vant 原始高度计算，解决抖动 */
+  transition: none !important; /* 消除聚焦过渡闪烁 */
+}
+

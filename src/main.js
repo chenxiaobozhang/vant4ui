@@ -1,6 +1,7 @@
 import { createApp } from "vue";
 import "./style.css";
 import "vant/lib/index.css";
+import "./theme-glass.css";
 import Vant from "vant";
 import '@vant/touch-emulator';
 //import VueVirtualScroller from 'vue-virtual-scroller';

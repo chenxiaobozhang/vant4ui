@@ -70,14 +70,38 @@ window.UI_DATA = {
               maxMinute: 40
             },
             {
+              label: '选择水果',
               type: 'transfer',
               key:'transfer1',
               options:[
-                { id: 101, name: '苹果 (Apple)' },
-                { id: 102, name: '香蕉 (Banana)' },
-                { id: 103, name: '橙子 (Orange)' },
-                { id: 104, name: '葡萄 (Grape)' },
-                { id: 105, name: '西瓜 (Watermelon)' }
+                { value: 101, text: '苹果 (Apple)' },
+                { value: 102, text: '香蕉 (Banana)' },
+
+              ]
+            },
+            {
+              label: '选择水果2',
+              type: 'transfer',
+              key:'transfer2',
+              options:[
+                { value: 101, text: '苹果 (Apple)' },
+                { value: 102, text: '香蕉 (Banana)' },
+                { value: 103, text: '橙子 (Orange)' },
+                { value: 104, text: '葡萄 (Grape)' },
+                { value: 105, text: '西瓜 (Watermelon)' },
+                { value: 106, text: '西瓜 (Watermelon)' },
+                { value: 107, text: '西瓜 (Watermelon)' },
+                { value: 108, text: '西瓜 (Watermelon)' },
+                { value: 109, text: '西瓜 (Watermelon)' },
+                { value: 111, text: '西瓜 (Watermelon)' },
+                { value: 111, text: '西瓜 (Watermelon)' },
+                { value: 112, text: '西瓜 (Watermelon)' },
+                { value: 113, text: '西瓜 (Watermelon)' },
+                { value: 114, text: '西瓜 (Watermelon)' },
+                { value: 115, text: '西瓜 (Watermelon)' },
+                { value: 116, text: '西瓜 (Watermelon)' },
+                { value: 117, text: '西瓜 (Watermelon)' },
+                { value: 118, text: '西瓜 (Watermelon)' },
               ]
             }
           ]
