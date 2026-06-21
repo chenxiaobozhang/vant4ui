@@ -2,10 +2,10 @@
 import { ref, toRaw, reactive, onMounted, onUnmounted, watch, computed, h } from 'vue';
 import { showDialog, Field, showToast, showSuccessToast, showFailToast } from 'vant';
 import { callLuaFun, lua2js, js2lua, Webview } from './public.js';
-// 1. 引入 Logs 组件
-// 注意：路径需根据你的实际位置调整，@ 通常指向 src 目录
+// 1. 引入 Logs 组件与通用表单组件
 import Logs from './components/Logs.vue';
 import Transfer from './components/Transfer.vue';
+import FormField from './components/FormField.vue';
 
 // --- 1. 基础配置与默认数据 ---
 const STORAGE_LIST_KEY = 'UI_CONFIG_LIST';
@@ -431,7 +431,7 @@ onMounted(() => {
     Webview.callLua("getLogs");
   } else {
     jsInitData({
-      configList: [{ name: '默认方案', data: { a: "aa", b: "bb" } }],
+      configList: [{ name: '默认方案', data: { startLoop: 2, startAccount: 10, a: "aa", b: "bb" } }],
       activeConfigIndex: 0,
       constData: { a: "aa", b: "bb", loop: 2, account: 10 }
     });
@@ -610,78 +610,15 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
             <template v-for="group in tab.groups" :key="group.name">
               <van-collapse-item :title="group.title" :name="group.name">
                 <div v-for="(item, i) in group.items" :key="i">
-
-                  <van-cell v-if="item.type === 'switch'" :title="item.label">
-                    <template #right-icon><van-switch v-model="formData[item.key]" size="22px" /></template>
-                  </van-cell>
-
-                  <van-cell v-if="item.type === 'stepper'" :title="item.label">
-                    <template #value><van-stepper v-model="formData[item.key]" :min="item.min" :max="item.max"
-                        :step="item.step || 1" :input-width="item.width" /></template>
-                  </van-cell>
-
-                  <van-cell v-if="item.type === 'radio'" :title="item.label">
-                    <template #right-icon>
-                      <van-radio-group v-model="formData[item.key]" direction="horizontal">
-                        <van-radio v-for="opt in item.options" :key="opt.value" :name="opt.value">{{ opt.text
-                          }} </van-radio>
-                      </van-radio-group>
-                    </template>
-                  </van-cell>
-                  <van-cell v-if="item.type === 'checkbox'" :title="item.label"
-                    :title-style="{ minWidth: item.label_width || '120px' }">
-                    <template #right-icon><van-checkbox-group v-model="formData[item.key]" direction="horizontal">
-                        <van-checkbox v-for="opt in item.options" :key="opt.value" :name="opt.value" shape="square"
-                          :style="item.checkbox_width ? { minWidth: item.checkbox_width } : null">
-                          {{ opt.text }}
-                        </van-checkbox>
-                      </van-checkbox-group>
-                    </template>
-                  </van-cell>
-                  <van-field v-if="item.type === 'picker'" :model-value="getPickerText(item)" :label="item.label"
-                    is-link readonly @click="onOpenPicker(item)" />
-
-                  <van-field v-if="item.type === 'timeRange'" :label="item.label"
-                    :model-value="formData[item.startKey] && formData[item.endKey] ? `${Array.isArray(formData[item.startKey]) ? formData[item.startKey].join(':') : formData[item.startKey]} - ${Array.isArray(formData[item.endKey]) ? formData[item.endKey].join(':') : formData[item.endKey]}` : ''" is-link
-                    readonly @click="onOpenTimeRange(item)" />
-                  <van-field v-if="item.type === 'input'" v-model="formData[item.key]" :label="item.label"
-                    :placeholder="item.placeholder">
-                    <template #button v-if="item.btnText">
-                      <van-button size="small" type="primary" @click="handleButtonClick(item)"
-                        style="min-width: 50px;">{{ item.btnText
-                        }}</van-button>
-                    </template>
-                  </van-field>
-                  <van-field v-if="item.type === 'textarea'" v-model="formData[item.key]" :label="item.label"
-                    type="textarea" :rows="item.rows" autosize show-word-limit maxlength="500"
-                    :placeholder="item.placeholder" />
-
-                  <div v-if="item.type === 'textareaEx'" class="textarea-container">
-                    <div class="textarea-title">{{ item.label }}</div>
-                    <div class="custom-textarea-wrapper">
-                      <div class="line-numbers">
-                        <div v-for="n in (formData[item.key]?.split('\n').length || 1)" :key="n">{{ n }}</div>
-                      </div>
-                      <van-field v-model="formData[item.key]" type="textarea" :rows="item.rows" autosize
-                        class="line-number-field" :placeholder="item.placeholder" />
-                    </div>
-                  </div>
-                  <van-cell v-if="item.type === 'button'" :title="item.label">
-                    <template #right-icon>
-                      <van-button size="small" type="primary" @click="handleButtonClick(item)">{{ item.btnText
-                        }} </van-button>
-                    </template>
-                  </van-cell>
-                  <div v-if="item.type === 'desc'" class="van-cell hint" style="white-space: pre-line;">{{ item.desc
-                  }}
-                  </div>
-                  <van-cell v-if="item.type === 'cell'" style="white-space: pre-line;" :icon="item.icon"
-                    :title="parseText(item.title)" :value="item.value">
-                  </van-cell>
-                  <van-field v-if="item.type === 'transfer'" :label="item.label"
-                    :model-value="getTransferText(item) || '请选择'" is-link readonly
-                    @click="onOpenTransfer(item)" />
-
+                  <FormField
+                    :item="item"
+                    :form-data="formData"
+                    :const-data="constData"
+                    @open-picker="onOpenPicker"
+                    @open-time-range="onOpenTimeRange"
+                    @open-transfer="onOpenTransfer"
+                    @button-click="handleButtonClick"
+                  />
                 </div>
               </van-collapse-item>
             </template>
@@ -797,6 +734,24 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
 </template>
 
 <style scoped>
+:deep(.van-input-bg) {
+  box-sizing: border-box;
+  width: var(--van-stepper-input-width);
+  height: var(--van-stepper-input-height);
+  margin: 0 2px;
+  padding: 0 5px;
+  color: var(--van-stepper-input-text-color);
+  font-size: var(--van-stepper-input-font-size);
+  line-height: var(--van-stepper-input-line-height);
+  text-align: left;
+  vertical-align: middle;
+  background: var(--van-stepper-background);
+  border-radius: 4px;
+  border: 1px solid rgb(235, 237, 240);
+  min-width: 30px;
+  flex: 0 0 auto;
+}
+
 .app-container {
   background: #f7f8fa;
   min-height: 100vh;

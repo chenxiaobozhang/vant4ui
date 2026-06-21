@@ -8,6 +8,8 @@ window.UI_DATA = {
   activeTab:0,          //默认打开的tab
   // 默认数据配置
   defaultData: {
+    startLoop: 1,
+    startAccount: 1,
     autoPromote: false,
     autoHarvest: true,
     autoDate: false,
@@ -47,7 +49,25 @@ window.UI_DATA = {
           title: '基础功能',
           name: '1',
           items: [
-            { label: '当前进度', key: 'progress', type: 'cell', title: '当前进度:第${loop}循环第${account}个账号', icon: 'location-o' ,value: '123',ref:true},
+            { label: '当前进度', key: 'progress', type: 'cell',value: '第${loop}循环,第${account}个账号',"style": {
+                "backgroundColor": "#ffffff",
+                "color": "#ee0a24",
+                "fontWeight": "bold",
+                "border": "1px solid red"
+              } 
+            },
+            { 
+              type: 'group',
+              label: '开始账号',
+              justify: 'end',
+              children: [
+                 { type: 'text', text: '从第' },
+                 { type: 'input', key: 'startLoop',placeholder:'1' },
+                 { type: 'text', text: '循环，第' },
+                 { type: 'input', key: 'startAccount',placeholder:'1' },
+                 { type: 'text', text: '个账号开始运行' }
+              ]
+            }, 
             { label: '测试数据', key: 'a', type: 'input', placeholder: '请输入测试数据', btnText: '确认' },
             { label: '自动升堂', key: 'autoPromote', type: 'switch' },
             { label: '自动收菜', key: 'autoHarvest', type: 'switch' },
