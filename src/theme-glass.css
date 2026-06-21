@@ -241,8 +241,8 @@ textarea::placeholder {
 }
 
 /* 消除搜索框内部 input 标签被全局 input 规则覆盖及 focus 污染导致的双重边框（明亮/暗黑通用） */
-.van-search input.van-field__control,
-.van-search input.van-field__control:focus {
+.van-search input.van-field__control:not([readonly]),
+.van-search input.van-field__control:not([readonly]):focus {
   background: transparent !important;
   border: none !important;
   padding: 0 !important;
@@ -266,16 +266,22 @@ textarea::placeholder {
 
 /* 8. Steppers / Checkbox / Radios */
 .theme-glass .van-checkbox__label,
-.theme-glass .van-radio__label {
+.theme-glass .van-radio__label,
+.theme-glass-active .van-checkbox__label,
+.theme-glass-active .van-radio__label {
   color: #f8fafc !important;
 }
 .theme-glass .van-checkbox__icon .van-icon,
-.theme-glass .van-radio__icon .van-icon {
+.theme-glass .van-radio__icon .van-icon,
+.theme-glass-active .van-checkbox__icon .van-icon,
+.theme-glass-active .van-radio__icon .van-icon {
   background-color: rgba(15, 23, 42, 0.5) !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
 }
 .theme-glass .van-checkbox__icon--checked .van-icon,
-.theme-glass .van-radio__icon--checked .van-icon {
+.theme-glass .van-radio__icon--checked .van-icon,
+.theme-glass-active .van-checkbox__icon--checked .van-icon,
+.theme-glass-active .van-radio__icon--checked .van-icon {
   background-color: #6366f1 !important;
   border-color: #6366f1 !important;
 }
@@ -687,10 +693,10 @@ textarea::placeholder {
 }
 
 /* 强力重置：彻底消除明亮/暗黑模式下搜索框内部 input 的一切背景、边框、内边距与投影，消除抖动并让出放大镜空间 */
-.van-search input.van-field__control,
-.van-search input.van-field__control:focus,
-.theme-glass .van-search input.van-field__control,
-.theme-glass .van-search input.van-field__control:focus {
+.van-search input.van-field__control:not([readonly]),
+.van-search input.van-field__control:not([readonly]):focus,
+.theme-glass .van-search input.van-field__control:not([readonly]),
+.theme-glass .van-search input.van-field__control:not([readonly]):focus {
   background: transparent !important;
   border: none !important;
   border-width: 0 !important;

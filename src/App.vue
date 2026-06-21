@@ -360,8 +360,10 @@ const handleExit = () => {
 const showLogsPopup = ref(false);
 const currentLogsData = ref([]);
 
-const handleButtonClick = (item) => {
-  if (item.key === 'openLogs') {
+const openLogsPopup = () => {
+  if (window.bridge || window.webView) {
+    Webview.callLua("getLogs");
+  } else {
     // 模拟从 JSON 初始化数据
     currentLogsData.value = [
       { id: 1, timestamp: '2023-10-27 10:00:01', name: '2023年10月27日10时00分01秒', size: '12584' },
@@ -370,7 +372,13 @@ const handleButtonClick = (item) => {
       { id: 4, timestamp: '2023-10-28 09:12:00', name: '2023年10月28日09时12分00秒', size: '1200000' },
       { id: 5, timestamp: '2023-10-28 10:30:45', name: '2023年10月28日10时30分45秒', size: '33210' }
     ];
-    showLogsPopup.value = true;
+  }
+  showLogsPopup.value = true;
+};
+
+const handleButtonClick = (item) => {
+  if (item.key === 'openLogs') {
+    openLogsPopup();
   } else if (item.key === 'a') {
     console.log('a');
   }
@@ -570,21 +578,10 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
         </template>
         <template #right>
           <div style="display: flex; gap: 16px; align-items: center;">
-            <van-icon
-              :name="showSearchInput ? 'cross' : 'search'"
-              @click="showSearchInput = !showSearchInput"
-              size="22"
-            />
-            <van-icon
-              name="brush-o"
-              @click="showThemePopup = true"
-              size="22"
-            />
-            <van-icon
-              name="replay"
-              @click="handleReload"
-              size="22"
-            />
+            <van-icon :name="showSearchInput ? 'cross' : 'search'" @click="showSearchInput = !showSearchInput"
+              size="22" />
+            <van-icon name="records-o" @click="openLogsPopup" size="22" />
+            <van-icon name="brush-o" @click="showThemePopup = true" size="22" />
           </div>
         </template>
       </van-nav-bar>
@@ -610,15 +607,9 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
             <template v-for="group in tab.groups" :key="group.name">
               <van-collapse-item :title="group.title" :name="group.name">
                 <div v-for="(item, i) in group.items" :key="i">
-                  <FormField
-                    :item="item"
-                    :form-data="formData"
-                    :const-data="constData"
-                    @open-picker="onOpenPicker"
-                    @open-time-range="onOpenTimeRange"
-                    @open-transfer="onOpenTransfer"
-                    @button-click="handleButtonClick"
-                  />
+                  <FormField :item="item" :form-data="formData" :const-data="constData" @open-picker="onOpenPicker"
+                    @open-time-range="onOpenTimeRange" @open-transfer="onOpenTransfer"
+                    @button-click="handleButtonClick" />
                 </div>
               </van-collapse-item>
             </template>
@@ -661,10 +652,10 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
         <van-button icon="plus" type="primary" block @click="addNewConfig" class="mt-20">新建方案</van-button>
       </div>
     </van-action-sheet>
-    <van-popup v-model:show="showPicker" position="bottom" round>
+    <van-popup v-model:show="showPicker" position="bottom" round teleport=".app-container">
       <van-picker :columns="currentPickerItem.options || []" @confirm="onConfirmPicker" @cancel="showPicker = false" />
     </van-popup>
-    <van-popup v-model:show="showTimePicker" position="bottom" round>
+    <van-popup v-model:show="showTimePicker" position="bottom" round teleport=".app-container">
       <van-picker-group title="选择时间段" :tabs="['开始时间', '结束时间']" next-step-text="下一步" @confirm="onConfirmTimePicker"
         @cancel="showTimePicker = false">
         <template v-if="currentTimeItem.startKey">
@@ -679,7 +670,7 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
     </van-popup>
 
     <!-- Transfer 穿梭框弹窗 -->
-    <van-popup v-model:show="showTransferPopup" position="bottom" round>
+    <van-popup v-model:show="showTransferPopup" position="bottom" round teleport=".app-container">
       <div class="popup-content" style="max-height: 70vh; display: flex; flex-direction: column;">
         <van-nav-bar :title="currentTransferItem.label || '选择'" left-text="取消" right-text="确定"
           @click-left="showTransferPopup = false" @click-right="onConfirmTransfer" />
@@ -691,16 +682,10 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
     </van-popup>
 
     <!-- 视觉设置面板 -->
-    <van-popup
-      v-model:show="showThemePopup"
-      position="bottom"
-      round
-      safe-area-inset-bottom
-      teleport="body"
-    >
+    <van-popup v-model:show="showThemePopup" position="bottom" round safe-area-inset-bottom teleport="body">
       <div class="visual-settings-panel">
         <div class="panel-header">视觉设置</div>
-        
+
         <div class="setting-item">
           <div class="setting-label">皮肤</div>
           <van-radio-group v-model="theme" direction="horizontal">
@@ -727,6 +712,12 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
           <div class="slider-wrapper">
             <van-slider v-model="scalePercent" :min="50" :max="150" />
           </div>
+        </div>
+
+        <div class="setting-item" style="margin-top: 30px;">
+          <van-button block type="warning" plain icon="replay" @click="handleReload">
+            重新加载页面
+          </van-button>
         </div>
       </div>
     </van-popup>
@@ -942,10 +933,12 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
   background: #fff;
   border-radius: 20px 20px 0 0;
 }
+
 .theme-glass .visual-settings-panel {
   background: rgba(15, 23, 42, 0.95) !important;
   color: #f8fafc !important;
 }
+
 .visual-settings-panel .panel-header {
   font-size: 16px;
   font-weight: 700;
@@ -953,12 +946,15 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
   margin-bottom: 20px;
   color: #323233;
 }
+
 .theme-glass .visual-settings-panel .panel-header {
   color: #f8fafc !important;
 }
+
 .visual-settings-panel .setting-item {
   margin-bottom: 24px;
 }
+
 .visual-settings-panel .setting-label {
   font-size: 14px;
   color: #646566;
@@ -966,16 +962,20 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
   display: flex;
   justify-content: space-between;
 }
+
 .theme-glass .visual-settings-panel .setting-label {
   color: #94a3b8 !important;
 }
+
 .visual-settings-panel .setting-value {
   font-weight: 700;
   color: #1989fa;
 }
+
 .theme-glass .visual-settings-panel .setting-value {
   color: #818cf8 !important;
 }
+
 .visual-settings-panel .slider-wrapper {
   padding: 6px 4px;
 }
@@ -985,6 +985,7 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
 .search-slide-leave-active {
   transition: all .12s cubic-bezier(.16, 1, .3, 1);
 }
+
 .search-slide-enter-from,
 .search-slide-leave-to {
   opacity: 0;
@@ -998,43 +999,78 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
   align-items: center;
   justify-content: center;
 }
+
 .nav-search-wrapper :deep(.van-search) {
   padding: 0;
   background: transparent;
   width: 100%;
 }
+
 .nav-search-wrapper :deep(.van-search__content) {
   background: rgba(0, 0, 0, 0.06);
   border-radius: 6px;
 }
+
 .theme-glass .nav-search-wrapper :deep(.van-search__content) {
   background: rgba(15, 23, 42, 0.6) !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
+
+/* 强力重置：彻底消除导航栏搜索框内部所有嵌套子容器（如cell, field, body, control）的边框、投影与阴影 */
+.nav-search-wrapper :deep(.van-cell),
+.nav-search-wrapper :deep(.van-field),
+.nav-search-wrapper :deep(.van-field__value),
+.nav-search-wrapper :deep(.van-field__body),
+.nav-search-wrapper :deep(.van-field__control) {
+  border: none !important;
+  border-width: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background: transparent !important;
+}
+
+.nav-search-wrapper :deep(.van-cell::after) {
+  display: none !important;
+}
+
+/* 高权重覆盖：压制 theme-glass.css 全局 input:not([readonly]) 带来的双重边框问题 */
+.nav-search-wrapper :deep(.van-search) input.van-field__control:not([readonly]),
+.nav-search-wrapper :deep(.van-search) input.van-field__control:not([readonly]):focus {
+  border: none !important;
+  border-width: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
 .nav-search-wrapper :deep(.van-field__control) {
   -webkit-text-fill-color: var(--van-field-input-text-color, #323233) !important;
   color: var(--van-field-input-text-color, #323233) !important;
 }
+
 .theme-glass .nav-search-wrapper :deep(.van-field__control) {
   -webkit-text-fill-color: #f8fafc !important;
   color: #f8fafc !important;
 }
+
 .nav-title-text {
   font-size: 16px;
   font-weight: 700;
   color: #fff;
 }
+
 .theme-glass .nav-title-text {
   background: linear-gradient(90deg, #818cf8, #c084fc) !important;
   -webkit-background-clip: text !important;
   background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
 }
+
 :deep(.van-nav-bar__title) {
   max-width: 65% !important;
   width: 65%;
   transition: all 0.15s ease;
 }
+
 .navbar-searching :deep(.van-nav-bar__title) {
   position: absolute !important;
   left: 48px !important;
@@ -1043,14 +1079,21 @@ onUnmounted(() => { if (timer) clearInterval(timer); });
   max-width: none !important;
   width: auto !important;
 }
+
 .nav-search-wrapper :deep(.van-field__control::placeholder) {
-  color: rgba(100, 101, 102, 0.6) !important;
-  -webkit-text-fill-color: rgba(100, 101, 102, 0.6) !important;
+  color: var(--van-field-placeholder-text-color, #969799) !important;
+  -webkit-text-fill-color: var(--van-field-placeholder-text-color, #969799) !important;
 }
+
 .theme-glass .nav-search-wrapper :deep(.van-field__control::placeholder) {
   color: rgba(255, 255, 255, 0.45) !important;
   -webkit-text-fill-color: rgba(255, 255, 255, 0.45) !important;
 }
+
+.nav-search-wrapper :deep(.van-field__left-icon) .van-icon {
+  color: var(--van-field-icon-color, #969799) !important;
+}
+
 .theme-glass .nav-search-wrapper :deep(.van-field__left-icon) .van-icon {
   color: rgba(255, 255, 255, 0.6) !important;
 }
